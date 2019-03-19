@@ -572,8 +572,8 @@ Example:
            </div>
            <div id="myModal-body" class="modal-body form-group">
                <!-- https://itsolutionstuff.com/post/simple-add-remove-input-fields-dynamically-using-jquery-with-bootstrapexample.html -->
-               <label for="modalSelectURI" class="col-form-label">List of URIs:</label>
-               <div class="input-group control-group after-add-more">
+               <label for="modalSelectURI" class="col-form-label">Add annotation</label>
+               <div class="input-group control-group">
                    <input id="modalSelectURI" mentiontype="- Select Type -" number="1" type="text" name="addmore[]" class="form-control taIdentRefRoot" placeholder="Link of the selected entity mention">
                    <!-- taIdentRef-->
                    <div class="input-group-btn"> 
@@ -594,10 +594,12 @@ Example:
                    </div>
                </div>
 
-               <br>
-               <label for="taxonomyAnn" class="col-form-label">Taxonomy:</label>
+               <!--<br>
+               <label for="taxonomyAnn" class="col-form-label">Taxonomy:</label>-->
                <input type="text" style="width:100%!important;" id="taxonomyAnn" class="taxonomyInputClass"/>
-
+               <br><br>
+               <p><b>List of Annotations:</b></p>
+               <div class="after-add-more"></div>
                <br><br>
                <label for="commentAnn">Comment:</label>
                <textarea class="form-control" id="commentAnn" rows="2" style="min-height:100px;" placeholder="Enter the comments here"></textarea>
@@ -671,8 +673,8 @@ Example:
                <label for="modalModifyAnnotationSelectURI" class="col-form-label">URI:</label>
                    <input type="text" class="form-control espacioAbajo" id="modalModifyAnnotationSelectURI" placeholder="Link of the selected entity mention"> -->
                
-               <label for="modalModifyAnnotationSelectURI" class="col-form-label">List of URIs:</label>
-               <div class="input-group control-group after-add-more-modification">
+               <label for="modalModifyAnnotationSelectURI" class="col-form-label">Add annotation</label>
+               <div class="input-group control-group">
                    
                    <!-- -->
                    <input id="modalModifyAnnotationSelectURI" mentiontype="- Select Type -" number="1" type="text" name="addmore[]" class="form-control taIdentRefRoot" placeholder="Link of the selected entity mention">
@@ -696,12 +698,18 @@ Example:
                    <!-- -->
                    
                </div>
-               <br>
-               <label for="taxonomyMod" class="col-form-label">Taxonomy:</label>
+               <!-- <br>
+               <label for="taxonomyMod" class="col-form-label">Taxonomy:</label>-->
                <input type="text" style="width:100%!important;" id="taxonomyMod" class="taxonomyInputClass"/>
+               <br><br>
+               <p><b>List of URIs:</b></p>
+               <div class="after-add-more-modification"></div>
+               
                <br><br>
                <label for="commentMod">Comment:</label>
                <textarea class="form-control" id="commentMod" rows="2" style="min-height:100px;" placeholder="Enter the comments here"></textarea>
+               
+               
            </div>
            <div class="modal-footer">
               <!--<button type="button" class="btn btn-primary">Annotate!</button>
@@ -750,21 +758,21 @@ Example:
            <div id="modalColor-body" class="modal-body form-group">  
                <div id="div_color" class="row">
                    <div class="col-lg-12"><h3>Base Form</h3><hr>
-                      <i>mnt:FullMentionPN  &nbsp;&nbsp;</i><input id="clr:mnt:FullMentionPN" class="jscolor" value="ab2567"><br>
-                      <i>mnt:ShortMentionPN  &nbsp;&nbsp;</i><input id="clr:mnt:ShortMentionPN" class="jscolor" value="ab2567"><br>
-                      <i>mnt:ExtendedMentionPN &nbsp;&nbsp;</i><input id="clr:mnt:ExtendedMentionPN" class="jscolor" value="ab2567"><br>
-                      <i>mnt:AliasPN &nbsp;&nbsp;</i><input id="clr:mnt:AliasPN" class="jscolor" value="ab2567"><br>
-                      <i>mnt:NumericTemporalPN &nbsp;&nbsp;</i><input id="clr:mnt:NumericTemporalPN" class="jscolor" value="ab2567"><br>
-                      <i>mnt:CommonFormPN &nbsp;&nbsp;</i><input id="clr:mnt:CommonFormPN" class="jscolor" value="ab2567"><br>
-                      <i>mnt:Pro-formPN &nbsp;&nbsp;</i><input id="clr:mnt:Pro-formPN" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-Full  &nbsp;&nbsp;</i><input id="clr:el:Mnt-Full" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-Short  &nbsp;&nbsp;</i><input id="clr:el:Mnt-Short" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-Extended &nbsp;&nbsp;</i><input id="clr:el:Mnt-Extended" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-Alias &nbsp;&nbsp;</i><input id="clr:el:Mnt-Alias" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-NumericTemporal &nbsp;&nbsp;</i><input id="clr:el:Mnt-NumericTemporal" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-CommonForm &nbsp;&nbsp;</i><input id="clr:el:Mnt-CommonForm" class="jscolor" value="ab2567"><br>
+                      <i>el:Mnt-ProForm &nbsp;&nbsp;</i><input id="clr:el:Mnt-ProForm" class="jscolor" value="ab2567"><br>
                    </div>
 
                    <div class="col-lg-12"><h3>Part of speech</h3><hr>
-                      <i>mnt:SingularNounPoS  &nbsp;&nbsp;</i><input id="clr:mnt:SingularNounPoS" class="jscolor" value="ab2567"><br>
-                      <i>mnt:PluralNounPoS  &nbsp;&nbsp;</i><input id="clr:mnt:PluralNounPoS" class="jscolor" value="ab2567"><br>
-                      <i>mnt:AdjectivePoS &nbsp;&nbsp;</i><input id="clr:mnt:AdjectivePoS" class="jscolor" value="ab2567"><br>
-                      <i>mnt:VerbPoS &nbsp;&nbsp;</i><input id="clr:mnt:VerbPoS" class="jscolor" value="ab2567"><br>
-                      <i>mnt:AdverbPoS &nbsp;&nbsp;</i><input id="clr:mnt:AdverbPoS" class="jscolor" value="ab2567"><br>
+                      <i>el:PoS-NounSingular  &nbsp;&nbsp;</i><input id="clr:el:PoS-NounSingular" class="jscolor" value="ab2567"><br>
+                      <i>el:PoS-NounPlural  &nbsp;&nbsp;</i><input id="clr:el:PoS-NounPlural" class="jscolor" value="ab2567"><br>
+                      <i>el:PoS-Adjective &nbsp;&nbsp;</i><input id="clr:el:PoS-Adjective" class="jscolor" value="ab2567"><br>
+                      <i>el:PoS-Verb &nbsp;&nbsp;</i><input id="clr:el:PoS-Verb" class="jscolor" value="ab2567"><br>
+                      <i>el:PoS-Adverb &nbsp;&nbsp;</i><input id="clr:el:PoS-Adverb" class="jscolor" value="ab2567"><br>
                    </div>
                    
                    <div class="col-lg-12"><h3>Referenece</h3><hr>
@@ -773,15 +781,19 @@ Example:
                    </div>
                    
                    <div class="col-lg-12"><h3>Overlap</h3><hr>
-                      <i>mnt:NonOverlapping  &nbsp;&nbsp;</i><input id="clr:mnt:NonOverlapping" class="jscolor" value="ab2567"><br>
-                      <i>mnt:MaximalOverlap  &nbsp;&nbsp;</i><input id="clr:mnt:MaximalOverlap" class="jscolor" value="ab2567"><br>
-                      <i>mnt:MinimalOverlap  &nbsp;&nbsp;</i><input id="clr:mnt:MinimalOverlap" class="jscolor" value="ab2567"><br>
-                      <i>mnt:IntermediateOverlap  &nbsp;&nbsp;</i><input id="clr:mnt:IntermediateOverlap" class="jscolor" value="ab2567"><br>
+                      <i>el:Olp-None  &nbsp;&nbsp;</i><input id="clr:el:Olp-None" class="jscolor" value="ab2567"><br>
+                      <i>el:Olp-Maximal  &nbsp;&nbsp;</i><input id="clr:el:Olp-Maximal" class="jscolor" value="ab2567"><br>
+                      <i>el:Olp-Minimal  &nbsp;&nbsp;</i><input id="clr:el:Olp-Minimal" class="jscolor" value="ab2567"><br>
+                      <i>el:Olp-Intermediate  &nbsp;&nbsp;</i><input id="clr:el:Olp-Intermediate" class="jscolor" value="ab2567"><br>
                    </div>
                    
                    <div class="col-lg-12"><h3>Rhetoric</h3><hr>
-                      <i>mnt:LiteralRh  &nbsp;&nbsp;</i><input id="clr:mnt:LiteralRh" class="jscolor" value="ab2567"><br>
-                      <i>mnt:FigurativeRh  &nbsp;&nbsp;</i><input id="clr:mnt:FigurativeRh" class="jscolor" value="ab2567"><br>
+                      <i>el:Ref-Direct  &nbsp;&nbsp;</i><input id="clr:el:Ref-Direct" class="jscolor" value="ab2567"><br>
+                      <i>el:Ref-Metaphoric  &nbsp;&nbsp;</i><input id="clr:el:Ref-Metaphoric" class="jscolor" value="ab2567"><br>
+                      <i>el:Ref-Anaphoric  &nbsp;&nbsp;</i><input id="clr:el:Ref-Anaphoric" class="jscolor" value="ab2567"><br>
+                      <i>el:Ref-Metonymic  &nbsp;&nbsp;</i><input id="clr:el:Ref-Metonymic" class="jscolor" value="ab2567"><br>
+                      <i>el:Ref-Related  &nbsp;&nbsp;</i><input id="clr:el:Ref-Related" class="jscolor" value="ab2567"><br>
+                      <i>el:Ref-Descriptive  &nbsp;&nbsp;</i><input id="clr:el:Ref-Descriptive" class="jscolor" value="ab2567"><br>
                    </div>
                </div>
            </div>

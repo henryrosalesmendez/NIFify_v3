@@ -329,7 +329,7 @@ $(document).ready(function() {
                 }
                 
                 // -- added
-                console.log("---------------------------------\n",text);
+                //console.log("---------------------------------\n",text);
                 //if (link2type[text] == undefined){
                     var typeMention = $(this).attr("mentiontype");
                     //console.log("typeMention -->",typeMention)
@@ -340,7 +340,7 @@ $(document).ready(function() {
                 //}
             });
 
-            // OJOOOO
+
             var in_uri = $("#modalSelectURI").val();
             if (in_uri){
                 list_uri.push(in_uri);
@@ -349,6 +349,44 @@ $(document).ready(function() {
                     link2type[in_uri] = w2type[typeMention];
                     //console.log("in_uri:",in_uri,"   w2type[typeMention]:",w2type[typeMention],"    typeMention:",typeMention);
                 }
+                
+                
+                var lst = $("#taxonomyAnn").select2('data');
+                var uri = in_uri
+                if  (uri != undefined && uri!=""){
+                    if (! ('uri2tag' in temp_annotation) ){
+                        temp_annotation["uri2tag"] = {};
+                    }
+                    
+                    //
+                       
+                    if (lst.length != 0){
+                        //--
+                        var list_tag = []; 
+                        for (i in lst){
+                            var v = lst[i];
+                            list_tag.push(v["text"])
+                        }
+                        
+                        //--
+                        if ( !('tag' in temp_annotation) ){                            
+                            temp_annotation["tag"] = list_tag;
+                        }
+                        else{
+                            temp_annotation["tag"] = temp_annotation["tag"].concat(list_tag);
+                        }
+                        
+                        
+                        //--
+                        temp_annotation["uri2tag"][uri] = list_tag;
+                    }
+                    
+                    //
+                    
+                    
+                }
+                
+                
             }
             
             
@@ -360,14 +398,8 @@ $(document).ready(function() {
             
             temp_annotation["uri"] = list_uri;
             
-            
-            /*if ($("#modalSelectTaxonomy").val()){
-                //console.log(' $("#modalSelectTaxonomy").text():', $("#modalSelectTaxonomy").text());
-                var listInputTaxonomy = $("#taxonomyInput").select2('data');
-                var tag_text = listInputTaxonomy[$("#modalSelectTaxonomy").val()]["text"];
-                //console.log("******>>>"+tag_text);
-                temp_annotation["tag"] = tag_text;//$("#modalSelectTaxonomy").text();
-            }*/
+            //tags 
+            /*
             var list_tag = [];
             var listInputTaxonomy = $("#taxonomyAnn").select2('data');        
             if (listInputTaxonomy.length != 0){
@@ -376,7 +408,51 @@ $(document).ready(function() {
                     list_tag.push(v["text"])
                 }
                 temp_annotation["tag"] = list_tag;
-            }
+            }*/
+            
+            
+            $("input.taxAdd").each(function(){
+                var lst = $(this).select2('data');
+                console.log(["lst:",lst]);
+                var ida = $(this).attr('ida');
+                console.log(["ida",ida]);
+                var uri = $("#annotation_"+ida).val();
+                console.log(["uri",uri]);
+                if  (uri != undefined && uri!=""){
+                    if (! ('uri2tag' in temp_annotation) ){
+                        temp_annotation["uri2tag"] = {};
+                    }
+                    
+                    //
+                       
+                    if (lst.length != 0){
+                        //--
+                        var list_tag = []; 
+                        for (i in lst){
+                            var v = lst[i];
+                            list_tag.push(v["text"])
+                        }
+                        
+                        //--
+                        if ( !('tag' in temp_annotation) ){                            
+                            temp_annotation["tag"] = list_tag;
+                        }
+                        else{
+                            temp_annotation["tag"] = temp_annotation["tag"].concat(list_tag);
+                        }
+                        
+                        
+                        //--
+                        temp_annotation["uri2tag"][uri] = list_tag;
+                        console.log("list_tag:",list_tag);
+                        console.log('temp_annotation["uri2tag"][uri]:',temp_annotation["uri2tag"][uri]);
+                    }
+                    
+                    //
+                    
+                    
+                }
+            });
             
             // comment
             var comment = $("#commentAnn").val();
@@ -983,12 +1059,17 @@ $(document).ready(function() {
                            if ("tag" in e && "tag" in ann){
                                
                                e["tag"] = e["tag"].concat(ann["tag"]);
-                               //console.log("1");
-                               //console.log(e["tag"]);
                            }
                            else if ("tag" in ann){
-                               //console.log("2");
                                e["tag"] = ann["tag"];
+                           }
+                           
+                           //--
+                           if ("uri2tag" in e && "uri2tag" in ann){
+                               e["uri2tag"]  = Object.assign({}, e["uri2tag"], ann["uri2tag"]);
+                           }
+                           else if ("uri2tag" in ann){
+                               e["uri2tag"] = ann["uri2tag"];
                            }
                            
                            temp.push(e);
@@ -1497,15 +1578,17 @@ $(document).ready(function() {
                                             "        nif:beginIndex \""+ini_t+"\"^^xsd:nonNegativeInteger ;\n"+
                                             "        nif:endIndex \""+fin_t+"\"^^xsd:nonNegativeInteger ;\n"+
                                             annotation_comment;
-                            if ("tag" in ann){
-                                if (ann["tag"].length>0){
+                                            
+
+                            if ("uri2tag" in ann){
+                                if (uu_ in ann["uri2tag"]){
                                     var temp_tag = "";
-                                    for (tt in ann["tag"]){
+                                    for (tt in ann["uri2tag"][uu_]){
                                         if (temp_tag == ""){
-                                            temp_tag = ann["tag"][tt];
+                                            temp_tag = ann["uri2tag"][uu_][tt];
                                         }
                                         else{
-                                            temp_tag = temp_tag + ", " + ann["tag"][tt];
+                                            temp_tag = temp_tag + ", " + ann["uri2tag"][uu_][tt];
                                         }
                                     }
                                     nifAnnotation = nifAnnotation + "        itsrdf:taClassRef "+temp_tag+" ;\n";
@@ -1685,52 +1768,62 @@ $(document).ready(function() {
 
    
    ListTaxonomy = [        
-        {id: 0,  text: 'mnt:FullMentionPN'},
-        {id: 1,  text: 'mnt:ShortMentionPN'},
-        {id: 2,  text: 'mnt:ExtendedMentionPN'},
-        {id: 3,  text: 'mnt:AliasPN'},
-        {id: 4,  text: 'mnt:NumericTemporalPN'},
-        {id: 5,  text: 'mnt:CommonFormPN'},
-        {id: 6,  text: 'mnt:Pro-formPN'},
-        {id: 7,  text: 'mnt:SingularNounPoS'},
-        {id: 8,  text: 'mnt:PluralNounPoS'},
-        {id: 9,  text: 'mnt:AdjectivePoS'},
-        {id: 10, text: 'mnt:VerbPoS'},
-        {id: 11, text: 'mnt:AdverbPoS'},
+        {id: 0,  text: 'el:Mnt-Full'},
+        {id: 1,  text: 'el:Mnt-Short'},
+        {id: 2,  text: 'el:Mnt-Extended'},
+        {id: 3,  text: 'el:Mnt-Alias'},
+        {id: 4,  text: 'el:Mnt-NumericTemporal'},
+        {id: 5,  text: 'el:Mnt-CommonForm'},
+        {id: 6,  text: 'el:Mnt-ProForm'},
+        {id: 7,  text: 'el:PoS-NounSingular'},
+        {id: 8,  text: 'el:PoS-NounPlural'},
+        {id: 9,  text: 'el:PoS-Adjective'},
+        {id: 10, text: 'el:PoS-Verb'},
+        {id: 11, text: 'el:PoS-Adverb'},
         {id: 12, text: 'mnt:AntecedentRf'},
         {id: 13, text: 'mnt:CoreferenceRf'},
-        {id: 14, text: 'mnt:NonOverlapping'},
-        {id: 15, text: 'mnt:MaximalOverlap'},
-        {id: 16, text: 'mnt:MinimalOverlap'},
-        {id: 17, text: 'mnt:IntermediateOverlap'},
-        {id: 18, text: 'mnt:LiteralRh'},
-        {id: 19, text: 'mnt:FigurativeRh'},
-        {id: 20, text: 'tax:Ambiguous'},
+        {id: 14, text: 'el:Olp-None'},
+        {id: 15, text: 'el:Olp-Maximal'},
+        {id: 16, text: 'el:Olp-Minimal'},
+        {id: 17, text: 'el:Olp-Intermediate'},
+        {id: 18, text: 'el:Ref-Direct'},
+        {id: 19, text: 'el:Ref-Metaphoric'},
+        
+        {id: 20, text: 'el:Ref-Anaphoric'},
+        {id: 21, text: 'el:Ref-Metonymic'},
+        {id: 22, text: 'el:Ref-Related'},
+        {id: 23, text: 'el:Ref-Descriptive'},
+        
+        {id: 24, text: 'tax:Ambiguous'},
         
     ];
     
     tax2id = {
-        'mnt:FullMentionPN'     :0,
-        'mnt:ShortMentionPN'    :1,
-        'mnt:ExtendedMentionPN' :2,
-        'mnt:AliasPN'           :3,
-        'mnt:NumericTemporalPN' :4,
-        'mnt:CommonFormPN'     :5,
-        'mnt:Pro-formPN'         :6,
-        'mnt:SingularNounPoS'   :7,
-        'mnt:PluralNounPoS'     :8,
-        'mnt:AdjectivePoS'      :9,
-        'mnt:VerbPoS'           :10,
-        'mnt:AdverbPoS'         :11,
+        'el:Mnt-Full'     :0,
+        'el:Mnt-Short'    :1,
+        'el:Mnt-Extended' :2,
+        'el:Mnt-Alias'           :3,
+        'el:Mnt-NumericTemporal' :4,
+        'el:Mnt-CommonForm'     :5,
+        'el:Mnt-ProForm'         :6,
+        'el:PoS-NounSingular'   :7,
+        'el:PoS-NounPlural'     :8,
+        'el:PoS-Adjective'      :9,
+        'el:PoS-Verb'           :10,
+        'el:PoS-Adverb'         :11,
         'mnt:AntecedentRf'       :12,
         'mnt:CoreferenceRf'      :13,
-        'mnt:NonOverlapping'    :14,
-        'mnt:MaximalOverlap'    :15,
-        'mnt:MinimalOverlap'    :16,
-        'mnt:IntermediateOverlap':17,
-        'mnt:LiteralRh'          :18,
-        'mnt:FigurativeRh'       :19,
-        'tax:Ambiguous'         :20,
+        'el:Olp-None'    :14,
+        'el:Olp-Maximal'    :15,
+        'el:Olp-Minimal'    :16,
+        'el:Olp-Intermediate':17,
+        'el:Ref-Direct'          :18,
+        'el:Ref-Metaphoric'       :19,
+        'el:Ref-Anaphoric'    : 20,
+        'el:Ref-Metonymic'    : 21,
+        'el:Ref-Related'      :22,
+        'el:Ref-Descriptive'   : 23,
+        'tax:Ambiguous'         :24,
     }
     
     
@@ -1743,57 +1836,66 @@ $(document).ready(function() {
     clr_red = "#773333";
     clr_pink = "#d484c6";
     tax2color = {        
-        'mnt:FullMentionPN'     :clr_blue,
-        'mnt:ShortMentionPN'    :clr_green,
-        'mnt:ExtendedMentionPN' :clr_gray,
-        'mnt:AliasPN'           :clr_pink,
-        'mnt:NumericTemporalPN' :clr_red,
-        'mnt:CommonFormPN'      :clr_light_blue,
-        'mnt:Pro-formPN'        :clr_brown,
-        'mnt:SingularNounPoS'   :clr_blue,
-        'mnt:PluralNounPoS'     :clr_green,
-        'mnt:AdjectivePoS'      :clr_gray,
-        'mnt:VerbPoS'           :clr_light_blue,
-        'mnt:AdverbPoS'         :clr_brown,
+        'el:Mnt-Full'     :clr_blue,
+        'el:Mnt-Short'    :clr_green,
+        'el:Mnt-Extended' :clr_gray,
+        'el:Mnt-Alias'           :clr_pink,
+        'el:Mnt-NumericTemporal' :clr_red,
+        'el:Mnt-CommonForm'      :clr_light_blue,
+        'el:Mnt-ProForm'        :clr_brown,
+        'el:PoS-NounSingular'   :clr_blue,
+        'el:PoS-NounPlural'     :clr_green,
+        'el:PoS-Adjective'      :clr_gray,
+        'el:PoS-Verb'           :clr_light_blue,
+        'el:PoS-Adverb'         :clr_brown,
         'mnt:AntecedentRf'       :clr_blue,
         'mnt:CoreferenceRf'      :clr_green,
-        'mnt:NonOverlapping'    :clr_blue,
-        'mnt:MaximalOverlap'    :clr_green,
-        'mnt:MinimalOverlap'    :clr_brown,
-        'mnt:IntermediateOverlap':clr_light_blue,
-        'mnt:LiteralRh'          :clr_blue,
-        'mnt:FigurativeRh'       :clr_green
+        'el:Olp-None'       :clr_blue,
+        'el:Olp-Maximal'    :clr_green,
+        'el:Olp-Minimal'    :clr_brown,
+        'el:Olp-Intermediate':clr_light_blue,
+        'el:Ref-Direct'          :clr_blue,
+        'el:Ref-Metaphoric'       :clr_green,
+        'el:Ref-Anaphoric'    : clr_gray,
+        'el:Ref-Metonymic'    : clr_light_blue,
+        'el:Ref-Related'      : clr_brown,
+        'el:Ref-Descriptive'   : clr_pink,
     };
     
     tax2groupColor = {        
-        'mnt:FullMentionPN'     :1,
-        'mnt:ShortMentionPN'    :1,
-        'mnt:ExtendedMentionPN' :1,
-        'mnt:AliasPN'           :1,
-        'mnt:NumericTemporalPN' :1,
-        'mnt:CommonFormPN'      :1,
-        'mnt:Pro-formPN'        :1,
-        'mnt:SingularNounPoS'   :2,
-        'mnt:PluralNounPoS'     :2,
-        'mnt:AdjectivePoS'      :2,
-        'mnt:VerbPoS'           :2,
-        'mnt:AdverbPoS'         :2,
+        'el:Mnt-Full'     :1,
+        'el:Mnt-Short'    :1,
+        'el:Mnt-Extended' :1,
+        'el:Mnt-Alias'           :1,
+        'el:Mnt-NumericTemporal' :1,
+        'el:Mnt-CommonForm'      :1,
+        'el:Mnt-ProForm'        :1,
+        'el:PoS-NounSingular'   :2,
+        'el:PoS-NounPlural'     :2,
+        'el:PoS-Adjective'      :2,
+        'el:PoS-Verb'           :2,
+        'el:PoS-Adverb'         :2,
         'mnt:AntecedentRf'       :3,
         'mnt:CoreferenceRf'      :3,
-        'mnt:NonOverlapping'    :4,
-        'mnt:MaximalOverlap'    :4,
-        'mnt:MinimalOverlap'    :4,
-        'mnt:IntermediateOverlap':4,
-        'mnt:LiteralRh'          :5,
-        'mnt:FigurativeRh'       :5
+        'el:Olp-None'    :4,
+        'el:Olp-Maximal'    :4,
+        'el:Olp-Minimal'    :4,
+        'el:Olp-Intermediate':4,
+        'el:Ref-Direct'          :5,
+        'el:Ref-Metaphoric'       :5,
+        'el:Ref-Anaphoric'    : 5,
+        'el:Ref-Metonymic'    : 5,
+        'el:Ref-Related'      :5,
+        'el:Ref-Descriptive'   : 5,
+        
     };
     
     tax2groupColor = {        
-        1: ['mnt:FullMentionPN','mnt:ShortMentionPN','mnt:ExtendedMentionPN','mnt:AliasPN','mnt:NumericTemporalPN','mnt:CommonFormPN','mnt:Pro-formPN'],
-        2: ['mnt:SingularNounPoS','mnt:PluralNounPoS','mnt:AdjectivePoS','mnt:VerbPoS', 'mnt:AdverbPoS'],
+        1: ['el:Mnt-Full','el:Mnt-Short','el:Mnt-Extended','el:Mnt-Alias','el:Mnt-NumericTemporal','el:Mnt-CommonForm','el:Mnt-ProForm'],
+        2: ['el:PoS-NounSingular','el:PoS-NounPlural','el:PoS-Adjective','el:PoS-Verb', 'el:PoS-Adverb'],
         3: ['mnt:AntecedentRf','mnt:CoreferenceRf'],
-        4: ['mnt:NonOverlapping','mnt:MaximalOverlap','mnt:MinimalOverlap','mnt:IntermediateOverlap'],
-        5: ['mnt:LiteralRh','mnt:FigurativeRh']
+        4: ['el:Olp-None','el:Olp-Maximal','el:Olp-Minimal','el:Olp-Intermediate'],
+        5: ['el:Ref-Direct','el:Ref-Metaphoric','el:Ref-Anaphoric','el:Ref-Metonymic','el:Ref-Related','el:Ref-Descriptive']
     };
     
     tax2namegroup = {
@@ -1801,7 +1903,7 @@ $(document).ready(function() {
         2 : "Part of speech",
         3 : "Referenece",
         4 : "Overlap",
-        5 : "Rhetoric"
+        5 : "Reference"
     }
     
     currentGroupOfColor = 0;//0;
@@ -2292,6 +2394,14 @@ $(document).ready(function() {
         return Sentences[p_sent];
     }
     
+    function extend(obj, src) {
+        for (var key in src) {
+            if (src.hasOwnProperty(key)) obj[key] = src[key];
+        }
+        return obj;
+    }
+
+    
     hasContentSentence2doc = []; // dbs that contains nif:hasContext identifiers
     dictHasContentSentence2doc = {};
     $("#btn_inputNIF").click(function(){   // que no necesite estar ordenado el fichero
@@ -2487,6 +2597,17 @@ $(document).ready(function() {
                             }
                             ann["tag"] = tag;
                         }
+                        
+                        //uri2tag -------------
+                        if ('tag' in ann){
+                            for (__uri_i in list_uri){
+                                var  __uri = list_uri[__uri_i];
+                                ann["uri2tag"] = {};
+                                ann["uri2tag"][__uri] = ann["tag"];
+                            }
+                        }
+                        
+                        
                         
                         //comment
                         var comment = parser_NIF(chunk,"rdfs:comment");
@@ -2904,12 +3025,11 @@ $(document).ready(function() {
                 mtype = type2w[ttyp];
                 if (mtype != undefined){
                     text_type = '<i class="glyphicon '+type2icon[ttyp]+'"></i>'+mtype;
-                    console.log("\n////////////////////\n text:",text,"    ttyp: ",ttyp,"    mtype:",mtype);
                 }
                 
             }
 
-            var html ='<div class="control-group input-group taIdentRefContainer" style="margin-top:10px">'+
+            var html ='<div class="taIdentRefContainer"><div class="control-group input-group" style="margin-top:10px">'+
                       '<input id="annotation_'+k+'" mentiontype="'+mtype+'" value="'+text+'" type="text" name="addmore[]" class="form-control taIdentRef" placeholder="Link of the selected entity mention">'+
                       '<div class="input-group-btn"> '+
                           '<button id="btn_type_annotation_'+k+'" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-    haspopup="true" aria-expanded="false">'+ text_type+
@@ -2925,47 +3045,51 @@ $(document).ready(function() {
                           '<button class="btn btn-info link" type="button" onclick="window.open(\''+text+'\',\'_blank\')"><i class="glyphicon glyphicon-link"></i>Link</button>'+
                           '<button class="btn btn-danger remove" type="button"><i class="glyphicon glyphicon-remove"></i> Remove</button>'+
                       '</div>'+
-                   '</div>';
+                   '</div><input type="text" ida="'+k+'" style="width:100%!important;" id="taxonomyAnnMod_'+k+'" class="taxonomyInputClass taxMod"/></div>';
           
           $(".after-add-more-modification").after(html);
           //$("#annotation_"+k).val(text);
+          
+          $('#taxonomyAnnMod_'+k).select2({
+                createSearchChoice:function(term, data) { 
+                    if ($(data).filter(function() { 
+                        return this.text.localeCompare(term)===0; 
+                    }).length===0) 
+                    {return {id:term, text:term};} 
+                },
+                multiple: true,
+                //data: [{id: 0, text: 'nerd:Organization'},{id: 1, text: 'dbpo:Company'},{id: 2, text: 'task'}]
+                data:ListTaxonomy
+            });
+          
+          
+            $('#taxonomyAnnMod_'+k).val('').trigger("change");
+            if ("uri2tag" in ann){            
+                var ids = []; //[{id: 21, text: "newTax"} .. ]
+                for (tt in ann["uri2tag"][text]){
+                    var ttag = ann["uri2tag"][text][tt];
+                    
+                    if (tax2id[ttag] != undefined){
+                        ids.push({"id":tax2id[ttag], "text":ttag});
+                    }
+                    else{
+                        var ll = Object.keys(tax2id).length;
+                        var newOption = new Option(ttag, ll, true, true);
+                        $('#taxonomyAnnMod_'+k).append(newOption);
+                        $('#taxonomyAnnMod_'+k).trigger('change');
+                        ids.push({"id":ll, "text":ttag});
+                        tax2id[ttag] = ll; 
+                    }
+                    
+                }
+                $('#taxonomyAnnMod_'+k).select2('data',ids);
+            }
         }
-        $("#modalModifyAnnotationSelectURI").attr("number",ann["uri"].length+1);
         
+        
+        $("#modalModifyAnnotationSelectURI").attr("number",ann["uri"].length+1);
          
         
-        if ("tag" in ann){
-            console.log("----A-----");
-            $('#taxonomyMod').val('').trigger("change");
-            var ids = []; //[{id: 21, text: "newTax"} .. ]
-            for (tt in ann["tag"]){
-                var ttag = ann["tag"][tt];
-                console.log("--> "+ttag);
-                
-                if (tax2id[ttag] != undefined){
-                    ids.push({"id":tax2id[ttag], "text":ttag});
-                    console.log("=>");
-                }
-                else{
-                    console.log("....");
-                    var ll = Object.keys(tax2id).length;
-                    var newOption = new Option(ttag, ll, true, true);
-                    console.log(newOption)
-                    $('#taxonomyMod').append(newOption);
-                    $('#taxonomyMod').trigger('change');
-                    //$("#taxonomyInput").select2('data', {id: ll, text: ttag});  
-                    ids.push({"id":ll, "text":ttag});
-                    tax2id[ttag] = ll; 
-                    console.log(tax2id);
-                }
-                
-            }
-            //$("#taxonomyInput").val(ids).change();
-            $("#taxonomyMod").select2('data',ids);
-        }
-        else{
-            $('#taxonomyMod').val('').trigger("change");
-        }
         
         //---
         if ("comment" in ann){
@@ -2988,6 +3112,8 @@ $(document).ready(function() {
 
         $("#btn_modify_all_doc").attr("ide",ide);
         $("#btn_modify_all_doc").attr("surfaceform",ann["label"]);*/
+        
+        $('#taxonomyMod').val('').trigger("change");
 
         $("#modalModifyAnnotation").modal("show");
     });
@@ -3054,12 +3180,37 @@ $(document).ready(function() {
                           '<button class="btn btn-info link" type="button" onclick="window.open(\''+text+'\',\'_blank\')"><i class="glyphicon glyphicon-link"></i>Link</button>'+
                           '<button class="btn btn-danger remove" type="button"><i class="glyphicon glyphicon-remove"></i> Remove</button>'+
                       '</div>'+
-                   '</div>';
+                   '</div><input type="text" style="width:100%!important;" id="taxonomyAnnMod_'+id+'" class="taxonomyInputClass"/></div>';
           
           
           $(".after-add-more-modification").after(html);
-
           
+          
+          $('#taxonomyAnnMod_'+id).select2({
+              createSearchChoice:function(term, data) { 
+                  if ($(data).filter(function() { 
+                      return this.text.localeCompare(term)===0; 
+                  }).length===0) 
+                  {return {id:term, text:term};} 
+              },
+              multiple: true,
+              //data: [{id: 0, text: 'nerd:Organization'},{id: 1, text: 'dbpo:Company'},{id: 2, text: 'task'}]
+              data:ListTaxonomy
+          });
+          
+          
+          //-----
+          
+          var lst = $("#taxonomyAnn111111111").select2('data');
+          var ids = []; 
+          for (i in lst){
+              var v = lst[i];
+              ids.push({"id":tax2id[tt], "text":tt});
+          }
+          console.log(ids);
+          $('#taxonomyAnnMod_'+id).select2('data',ids);
+
+          //----
           $("#annotation_"+id).val(text);
           $("#modalModifyAnnotationSelectURI").attr("number",parseInt(id)+1);
           $("#modalModifyAnnotationSelectURI").val("");
@@ -3118,9 +3269,57 @@ $(document).ready(function() {
                     }
                 //}
                 
+                
+
+                
+            });
+            
+            
+            
+            //tags
+            
+            $("input.taxMod").each(function(){
+                var lst = $(this).select2('data');
+                var ida = $(this).attr('ida');
+                var uri = $("#annotation_"+ida).val();
+                if  (uri != undefined && uri!=""){
+                    if (! ('uri2tag' in A[ide]) ){
+                        A[ide]["uri2tag"] = {};
+                    }
+                    
+                    //
+                       
+                    if (lst.length != 0){
+                        //--
+                        var list_tag = []; 
+                        for (i in lst){
+                            var v = lst[i];
+                            list_tag.push(v["text"])
+                        }
+                        
+                        //--
+                        if ( !('tag' in A[ide]) ){                            
+                            A[ide]["tag"] = list_tag;
+                        }
+                        else{
+                            A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
+                        }
+                        
+                        
+                        //--
+                        A[ide]["uri2tag"][uri] = list_tag;
+                    }
+                    else{
+                        delete A[ide]["uri2tag"][uri];
+                    }
+                    
+                    //
+                    
+                    
+                }
             });
 
-            /*  OJOOOOOOO */
+            //-- see adding inputs
             var in_uri = $("#modalModifyAnnotationSelectURI").val();
             if (in_uri){
                 list_uri.push(in_uri);
@@ -3129,7 +3328,51 @@ $(document).ready(function() {
                     link2type[in_uri] = w2type[typeMention];
                     //console.log("in_uri:",in_uri,"   w2type[typeMention]:",w2type[typeMention],"    typeMention:",typeMention);
                 }
+                
+                
+                var lst = $("#taxonomyMod").select2('data');
+                var uri = in_uri;
+                if  (uri != undefined && uri!=""){
+                    if (! ('uri2tag' in A[ide]) ){
+                        A[ide]["uri2tag"] = {};
+                    }
+                    
+                    //
+                       
+                    if (lst.length != 0){
+                        //--
+                        var list_tag = []; 
+                        for (i in lst){
+                            var v = lst[i];
+                            list_tag.push(v["text"])
+                        }
+                        
+                        //--
+                        if ( !('tag' in A[ide]) ){                            
+                            A[ide]["tag"] = list_tag;
+                        }
+                        else{
+                            A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
+                        }
+                        
+                        
+                        //--
+                        A[ide]["uri2tag"][uri] = list_tag;
+                    }
+                    else{
+                        delete A[ide]["uri2tag"][uri];
+                    }
+                    
+                    //
+                    
+                    
+                }
+                
+                
             }
+            
+            
+            //---
             
                
             if (list_uri.length == 0){
@@ -3139,7 +3382,7 @@ $(document).ready(function() {
             
             A[ide]["uri"] = list_uri;
  
-
+            /*
             var list_tag = [];
             var listInputTaxonomy = $("#taxonomyMod").select2('data');        
             if (listInputTaxonomy.length != 0){
@@ -3152,6 +3395,7 @@ $(document).ready(function() {
             else{
                 delete A[ide]["tag"];
             }
+            */
             
             
             // comment
@@ -3239,7 +3483,7 @@ $(document).ready(function() {
                   text_type = '<i class="glyphicon '+type2icon[ttyp]+'"></i>'+mtype;
               }
           }
-          var html ='<div class="control-group input-group taIdentRefContainer" style="margin-top:10px">'+
+          var html ='<div class="taIdentRefContainer"><div class="control-group input-group" style="margin-top:10px">'+
                       '<input id="annotation_'+id+'" mentiontype="'+mtype+'" type="text" name="addmore[]" class="form-control taIdentRef" placeholder="Link of the selected entity mention">'+
                       '<div class="input-group-btn"> '+
                           '<button id="btn_type_annotation_'+id+'" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-    haspopup="true" aria-expanded="false">'+ text_type+
@@ -3255,10 +3499,36 @@ $(document).ready(function() {
                           
                           '<button class="btn btn-danger remove" type="button"><i class="glyphicon glyphicon-remove"></i> Remove</button>'+
                       '</div>'+
-                   '</div>';
+                   '</div><input type="text" ida='+id+' style="width:100%!important;" id="taxonomyAnn_'+id+'" class="taxonomyInputClass taxAdd"/></div>';
           
           $(".after-add-more").after(html);
-
+          
+          $('#taxonomyAnn_'+id).select2({
+              createSearchChoice:function(term, data) { 
+                  if ($(data).filter(function() { 
+                      return this.text.localeCompare(term)===0; 
+                  }).length===0) 
+                  {return {id:term, text:term};} 
+              },
+              multiple: true,
+              //data: [{id: 0, text: 'nerd:Organization'},{id: 1, text: 'dbpo:Company'},{id: 2, text: 'task'}]
+              data:ListTaxonomy
+          });
+          
+          //---
+          var lst = $("#taxonomyAnn").select2('data');
+          var ids = []; 
+          for (i in lst){
+              var v = lst[i];
+              console.log(v);
+              ids.push({"id":v["id"], "text":v["text"]});
+          }
+          console.log(ids);
+          $('#taxonomyAnn_'+id).select2('data',ids);
+          
+          
+          //--
+          $('#taxonomyAnn').val('').trigger("change");
           var text = $("#modalSelectURI").val();
           $("#annotation_"+id).val(text);
           $("#modalSelectURI").attr("number",parseInt(id)+1);
@@ -3270,7 +3540,7 @@ $(document).ready(function() {
       });
 
       $("body").on("click",".remove",function(){ 
-          $(this).parents(".control-group").remove();
+          $(this).parents(".taIdentRefContainer").remove();
       });
     
     
@@ -3982,7 +4252,7 @@ $(document).ready(function() {
             
             for (index in tax2color){
                 document.getElementById("clr:"+index).jscolor.fromString(tax2color[index]);
-            }            
+            } 
             
             $("#modalColor").modal("show");
         }
@@ -3999,6 +4269,34 @@ $(document).ready(function() {
         }
         buildNIFCorpora();
     });
+    
+    
+    
+    /*
+    adding_to_modal = function(){
+        alert("Here");
+        var html_ = '<div id="div_color" class="row">';
+        for (g_i in tax2namegroup){
+            var g = tax2namegroup[g_i];
+            var ig = parseInt(g_i);
+            
+            html_ = html_ + '<div class="col-lg-12"><h3>'+g+'</h3><hr>';
+            
+            for (it_i in tax2groupColor[ig]){
+                var it = tax2groupColor[ig][it_i];
+                
+                html_ = html_ + '<i>'+it+'  &nbsp;&nbsp;</i><input id="clr:'+it+'" class="jscolor" value="'+tax2color[it]+'"><br>';
+            }
+            
+            html_ = html_ + '</div>';
+        }
+        
+        html_ = html_ + '</div>';
+        console.log(html_);
+        $('#modalColor-body').html(html_);
+    }
+    
+    adding_to_modal();*/
     
     
     
@@ -4043,9 +4341,9 @@ $(document).ready(function() {
             
             for(i in both){
                 var t = both[i];
-                var plurality = "mnt:SingularNounPoS";
+                var plurality = "el:PoS-NounSingular";
                 if (PluralPronouns.indexOf(t) != -1){
-                    plurality = "mnt:PluralNounPoS";
+                    plurality = "el:PoS-NounPlural";
                 }
                 
                 //var t = d["label"];
@@ -4066,7 +4364,7 @@ $(document).ready(function() {
                                 "fin":fin, 
                                 "uri":["https://en.wikipedia.org/wiki/NotInLexico"], 
                                 "id_sentence": ids,
-                                "tag": ["mnt:Pro-formPN", plurality, "mnt:CoreferenceRf", "mnt:NonOverlapping", "mnt:LiteralRh","tax:Ambiguous"],
+                                "tag": ["el:Mnt-ProForm", plurality, "mnt:CoreferenceRf", "el:Olp-None", "el:Ref-Direct","tax:Ambiguous"],
                                 "uridoc":doc["uri"],
                                 //"uridoc": Sentences[ids]["uridoc"],
                                 "label":t
@@ -4149,7 +4447,7 @@ $(document).ready(function() {
         var newstate = "On";
         $("#iconfilter").addClass("text-primary");
         $("#filterTaxonomy").attr("state",newstate);
-        //_filter = ["mnt:LiteralRh"];
+        //_filter = ["el:Ref-Direct"];
         _filter = [];
         var listInputTaxonomy = $("#taxonomyInput").select2('data'); //devuelve algo asi [{…}, {…}]
                                                                  //                   0: {id: 2, text: "nerd:Airline"},
@@ -4239,8 +4537,8 @@ $(document).ready(function() {
                 var pos = match.index +1;
                 var p_n = pos_and_number(text,pos);
                 var ids = sent2id(pos,_inDocCounter);
-                var plurality = "mnt:PluralNounPoS";
-                if (p_n["label"] == "1"){plurality = "mnt:SingularNounPoS";}
+                var plurality = "el:PoS-NounPlural";
+                if (p_n["label"] == "1"){plurality = "el:PoS-NounSingular";}
                 console.log(doc["uri"]);
                 var notYet = notAnnotatedYet(p_n["ini"],p_n["fin"],doc["uri"]);
                 console.log("notYet");
@@ -4251,7 +4549,7 @@ $(document).ready(function() {
                         "fin":p_n["fin"],//fin, 
                         "uri":["https://en.wikipedia.org/wiki/"+p_n["label"]],//NotInLexico"], 
                         "id_sentence": ids,
-                        "tag": ["mnt:NumericTemporalPN", plurality, "mnt:AntecedentRf", "mnt:NonOverlapping", "mnt:LiteralRh","tax:Ambiguous"],
+                        "tag": ["el:Mnt-NumericTemporal", plurality, "mnt:AntecedentRf", "el:Olp-None", "el:Ref-Direct","tax:Ambiguous"],
                         "uridoc":doc["uri"],
                         //"uridoc": Sentences[ids]["uridoc"],
                         "label":p_n["label"]
@@ -5066,7 +5364,7 @@ $(document).ready(function() {
         "number_errors":"-",
         "errors":[],
         "type":"dinamic",
-        "automatic_expresion":"<tag@mnt:NumericTemporalPN,tag@mnt:CommonFormPN><tag@mnt:AntecedentRf,tag@mnt:CoreferenceRf>%(mnt:AntecedentRf,mnt:CoreferenceRf)"
+        "automatic_expresion":"<tag@el:Mnt-NumericTemporal,tag@el:Mnt-CommonForm><tag@mnt:AntecedentRf,tag@mnt:CoreferenceRf>%(mnt:AntecedentRf,mnt:CoreferenceRf)"
     };
     
     
@@ -5487,7 +5785,7 @@ $(document).ready(function() {
         valid_overlap_tag = function(i){
             var ann = A[i];
             //console.log(["ann:",ann]);
-            if (ann == undefined){return "mnt:NonOverlapping";}
+            if (ann == undefined){return "el:Olp-None";}
             
             var ini = ann["ini"];
             var fin = ann["fin"];
@@ -5498,15 +5796,15 @@ $(document).ready(function() {
             var b_ext = _result[1];
             var b_int = _result[2];
             
-            if (b_there_are_overlaps == false){return "mnt:NonOverlapping";}
-            if (b_ext == true && b_int == false){return 'mnt:MinimalOverlap';}
-            if (b_int == true && b_ext == false){return 'mnt:MaximalOverlap';}
-            return 'mnt:IntermediateOverlap';
+            if (b_there_are_overlaps == false){return "el:Olp-None";}
+            if (b_ext == true && b_int == false){return 'el:Olp-Minimal';}
+            if (b_int == true && b_ext == false){return 'el:Olp-Maximal';}
+            return 'el:Olp-Intermediate';
         }
 
 
     //--
-    tagOverlapList = ["mnt:NonOverlapping","mnt:MinimalOverlap","mnt:MaximalOverlap","mnt:IntermediateOverlap"];
+    tagOverlapList = ["el:Olp-None","el:Olp-Minimal","el:Olp-Maximal","el:Olp-Intermediate"];
     valid_CheckOverlaps = function(_idv){
         var count_errors = 0;
         for (a_i in A){
@@ -5560,11 +5858,11 @@ $(document).ready(function() {
             for (a_i in SentencesAnnotations){                     
                 var a = SentencesAnnotations[a_i];                
 
-                if ("tag" in a &&  a["tag"].indexOf("mnt:Pro-formPN") != -1){
+                if ("tag" in a &&  a["tag"].indexOf("el:Mnt-ProForm") != -1){
                     // have to be Coreference
                     correctReferenceTag[a["idA"]] = {"ref":"mnt:CoreferenceRf","id_sentence":-1};
                 }
-                else if ("tag" in a &&  a["tag"].indexOf("mnt:CommonFormPN")==-1 && a["tag"].indexOf("mnt:NumericTemporalPN") == -1){
+                else if ("tag" in a &&  a["tag"].indexOf("el:Mnt-CommonForm")==-1 && a["tag"].indexOf("el:Mnt-NumericTemporal") == -1){
                     var alreadyAnn = false;
                     for (var u_i in a["uri"]){
                         var u = a["uri"][u_i];
@@ -5601,7 +5899,7 @@ $(document).ready(function() {
                 var sent_id = parseInt(val_ref["id_sentence"])+1;
                 var msg = "Mention <i>"+ann_["label"]+"</i> should be "+val_ref["ref"]+" because appear before in sentence "+sent_id+".";
                 if (val_ref["id_sentence"] == -1){
-                    msg = "Should be mnt:CoreferenceRf because <i>"+ann_["label"]+"</i> is a mnt:Pro-formPN.";
+                    msg = "Should be mnt:CoreferenceRf because <i>"+ann_["label"]+"</i> is a el:Mnt-ProForm.";
                 }
                 else if (val_ref["id_sentence"] == "mnt:AntecedentRf"){
                     msg = "Should be mnt:AntecedentRf because <i>"+ann_["label"]+"</i> does not appear before.";
@@ -6744,6 +7042,10 @@ $(document).ready(function() {
         }
         add_all_sysD();
     });
+    
+    
+    
+
     
     
 });
