@@ -5665,7 +5665,7 @@ $(document).ready(function() {
     };
     
     V[7] = {
-        "name":"Showing validation tree",
+        "name":"Validation tree",
         "date":"-",
         "time":"-",
         "description":"Building a validation tree to check types, links and contexts",
@@ -5830,7 +5830,7 @@ $(document).ready(function() {
                 valid_CheckSurfaceForm(idv);
                 $.unblockUI();
             }
-            else if (v["name"] == "Showing validation tree"){
+            else if (v["name"] == "Validation tree"){
                 $.blockUI({ message: null });
                 valid_CheckTree(idv);
                 $.unblockUI();
@@ -6392,7 +6392,7 @@ $(document).ready(function() {
     
     
     
-    /////------- Showing validation tree
+    /////------- Validation tree
     
     getTagsOrderedAsText = function(L_tags){
         Lr = [];
