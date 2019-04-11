@@ -1260,9 +1260,9 @@ $(document).ready(function() {
         if ((aa == undefined) || !("tag" in aa) ){
             return 'style="background-color: '+clr_black+';"';
         }
-        //console.log(["tax2groupColor[currentGroupOfColor]:",tax2groupColor[currentGroupOfColor]]);
-        for (ii in tax2groupColor[currentGroupOfColor]){
-            var t_ = tax2groupColor[currentGroupOfColor][ii];
+        
+        for (ii in groupColor2tax[currentGroupOfColor]){
+            var t_ = groupColor2tax[currentGroupOfColor][ii];
             if (aa["tag"].indexOf(t_) != -1){
                 //console.log("AQUIIIIII  "+t_+"   "+tax2color[t_]);
                 return 'style="background-color: '+tax2color[t_]+';"';
@@ -1890,7 +1890,7 @@ $(document).ready(function() {
         
     };
     
-    tax2groupColor = {        
+    groupColor2tax = {        
         1: ['el:Mnt-Full','el:Mnt-Short','el:Mnt-Extended','el:Mnt-Alias','el:Mnt-NumericTemporal','el:Mnt-CommonForm','el:Mnt-ProForm'],
         2: ['el:PoS-NounSingular','el:PoS-NounPlural','el:PoS-Adjective','el:PoS-Verb', 'el:PoS-Adverb'],
         3: ['mnt:AntecedentRf','mnt:CoreferenceRf'],
@@ -2000,13 +2000,12 @@ $(document).ready(function() {
 
 
     //-------- download
+    bCoNLLFormat = false;
     $("#btn_download").click(function(){
-        /*BootstrapDialog.show({
-            message: "It's not working yet :("
-        });*/
+
         
-	if ('Blob' in window) {
-	  BootstrapDialog.show({
+       if ('Blob' in window) {
+         BootstrapDialog.show({
             message: '<label for="filename_input" class="col-form-label">File Name:</label> ' +
                      '<input type="text" class="form-control espacioAbajo" id="filename_input" '+
                      'placeholder="Name of the file">',
@@ -2022,6 +2021,11 @@ $(document).ready(function() {
                     var fileName = $("#filename_input").val();
                     if (fileName) {
                         var htmlText = $('#nifdoc').html();
+                        if (bCoNLLFormat){
+                            htmlText = CoNLL_Format();
+                        }
+                        bCoNLLFormat = false;
+                        
                         htmlText = replaceAll(htmlText,"&nbsp;"," ");
                         var textToWrite = Encoder.htmlDecode(replaceAll(htmlText,"<br>","\n"));
                         var textFileAsBlob = new Blob([textToWrite], { type: 'text/plain' });
@@ -2058,11 +2062,283 @@ $(document).ready(function() {
 
 
     if (!String.prototype.trim) {
-	  String.prototype.trim = function () {
-		return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
-	  };
-	}
+      String.prototype.trim = function () {
+          return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+      };
+    }
 
+
+    
+    //--- CoNLL 
+
+    $("#btn_CoNLL_download").click(function(){
+        bCoNLLFormat = true;
+        $("#btn_download").click();
+    });
+    
+
+    
+    getNameByUri = function(uri){
+        var L = uri.split("/");
+        return L[L.length-1].split("#")[0];
+    }
+    
+    
+    /*CoNLL_no_annotations = function(txt){
+        var s = "";
+        var L = txt.split(" ");
+        for (l_i in L){
+            var l = L[l_i];
+            console.log(["--->",l,l.length]);
+            if (l.length > 0){
+                s = s + l + " O\n";
+            }
+        }
+        return s;
+    }*/
+    
+    firstWord = function(txt){
+        var L = txt.split(" ");
+        for (l_i in L){
+            var l = L[l_i];
+            if (l.length > 0){
+                return l;
+            }
+        }
+        return false;
+    }
+    
+    // return the largest annotation starting in posit
+    SameIniPositionList = function(posit, ListAnn){
+        var listOrderedAnn = [];
+        for (var la_i in ListAnn){
+            var la = ListAnn[la_i];
+            if (la["ini"] == posit){
+                
+                if (listOrderedAnn.length == 0){
+                    listOrderedAnn.push(la);
+                }
+                else {
+                    var temp = [];
+                    var binserted = false;
+                    for (ilt_i in listOrderedAnn){
+                        var ilt = listOrderedAnn[ilt_i];
+                        if (parseInt(la["fin"])<parseInt(ilt["fin"])){
+                            temp.push(la);
+                            temp.push(ilt);
+                            binserted = true;
+                        }
+                        else{
+                            temp.push(ilt);
+                        }
+                    }
+                    
+                    if (binserted == false){
+                        temp.push(la);
+                    }
+                    
+                    listOrderedAnn = temp;
+                }               
+                
+            }
+        }
+        
+        if (listOrderedAnn.length>0){
+            return listOrderedAnn[listOrderedAnn.length-1];
+        }
+        
+        return false;
+    }
+    
+    isLetter = function(c) {
+        return c.toLowerCase() != c.toUpperCase();
+    }
+    
+    //
+    words_beggining = function(txt){
+        var Lpos = [];
+        var state = 0;
+        for (var i = 0; i < txt.length; i++) {
+            var ch = txt[i];
+            //console.log(ch,state)
+            if (state == 0){  // consuming spaces
+                if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t'){
+                    //pass
+                }
+                else if (isLetter(ch)){
+                    state = 1;
+                    Lpos.push(i);
+                }
+                else if (isNumber(ch)){
+                    state = 2;
+                    Lpos.push(i);
+                }
+                else{ // simbols
+                    Lpos.push(i);
+                }
+                 
+            }
+            
+            else if (state == 1){  // fr letters
+                if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t'){
+                    state = 0;
+                }
+                else if (!(isLetter(ch)||isNumber(ch))){ // simbols
+                    state = 0;
+                    Lpos.push(i);
+                }
+
+            }
+            
+            else if (state == 2){  // fr numbers
+                if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t'){
+                    state = 0;
+                }
+                else if ((ch == "." || ch==",") && (i+1<txt.length && isNumber(txt[i+1])) ){
+                    // pass 
+                }
+                else if (!(isLetter(ch)||isNumber(ch))){ // simbols
+                    state = 0;
+                    Lpos.push(i);
+                }
+
+            }
+        }
+        return Lpos;
+    }
+    
+    
+    
+    //    
+    strip_spaces_simbols = function(txt){
+        var st = "";
+        var state = 0;
+        for (var i = 0; i < txt.length; i++) {
+            var ch = txt[i];
+            //console.log(ch,state)
+            if (state == 0){  // consuming spaces
+                if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t'){
+                    //pass
+                }
+                else if (isLetter(ch)){
+                    st = ch;
+                    state = 1;
+                }
+                else if (isNumber(ch)){
+                    st = ch;
+                    state = 2;
+                }
+                else{ // simbols
+                    return ch;
+                }
+                 
+            }
+            
+            else if (state == 1){  // fw Letters
+                if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t'){
+                    return st;
+                }
+                else if (!(isLetter(ch)||isNumber(ch))){ // simbols
+                    return st;
+                }
+                else{
+                    st = st + ch;
+                }
+            }
+            
+            else if (state == 2){ // fw Numbers
+                if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t'){
+                    return st;
+                }
+                else if ((ch == "." || ch==",") && (i+1<txt.length && isNumber(txt[i+1])) ){
+                    st = st + ch;
+                }
+                else if (!(isLetter(ch)||isNumber(ch))){ // simbols
+                    return st;
+                }
+                
+                else{
+                    st = st + ch;
+                }
+            }
+        }
+        return st;
+    }
+
+
+    CoNLL_Format = function(){
+        var CoNLL = "";
+        for (d_i in D){
+           var dd = D[d_i];
+           var urldoc = dd["uri"];
+           var namedoc = getNameByUri(urldoc);
+           CoNLL = CoNLL + "-DOCSTART- "+namedoc+"\n";
+           
+           var overall = 0;
+           for (i in Sentences){
+             if (Sentences[i]["uridoc"] != urldoc){
+                 continue;
+             }
+             sent = Sentences[i]["text"];
+
+             var SentencesAnnotations = getSentencesAnnotations(i);
+             
+             var P = words_beggining(sent);
+             var lastFin = -1;
+             
+             for (p_i in P){
+                 var p = P[p_i];
+                 if (p<lastFin){continue;}
+        
+                 var samePosList = SameIniPositionList(p+overall, SentencesAnnotations); // largest annotation that start in this poition
+
+                 if (samePosList == false){
+                     var w_ = strip_spaces_simbols(sent.substring(p,sent.length));
+                     CoNLL = CoNLL + w_ + " O\n";
+                 }
+                 else{
+                     var ini_ = samePosList["ini"] - overall;
+                     var fin_ = samePosList["fin"] - overall;
+                     lastFin = fin_;
+                     
+                     label = sent.substring(ini_,fin_);
+                     
+                     var joined_ = "";
+                     for (var u_i = 0; u_i<label.length; u_i++){
+                         var u = label[u_i];
+                    
+                         if ( u == ' ' || u == '\r' || u == '\t' || u == '\n')  {
+                             joined_ = joined_ + "_";
+                         } 
+                         else{
+                             joined_ = joined_ + u;
+                        }
+                     }
+                     
+                     O = words_beggining(label);
+                     for (o_i in O){
+                         var o = O[o_i];
+                         var w_ = strip_spaces_simbols(label.substring(o,label.length));
+                         if (o == 0){
+                             CoNLL = CoNLL + w_ + " B " + joined_ + " "+ samePosList["uri"].join(" ") + "\n";
+                         }
+                         else{
+                             CoNLL = CoNLL + w_ + " I " + joined_ + " "+ samePosList["uri"].join(" ") + "\n";                          
+                         }
+                    }
+                }
+             }
+             overall = overall+sent.length+1;
+             CoNLL = CoNLL + "\n";
+             
+             
+           }
+           
+           
+           
+        }
+        return CoNLL;
+    }
 
 
     ///----
@@ -2792,7 +3068,7 @@ $(document).ready(function() {
             "name":"Loading errors",
             "date":"-",
             "time":"-",
-            "description":"(Format Error Type 1) Here we show the errors from the loading process.",
+            "description":"Here we show the errors from the loading process.",
             "number_errors":"-",
             "errors":[],
             "type":"dinamic"
@@ -5382,7 +5658,27 @@ $(document).ready(function() {
         "name":"Surface form checker",
         "date":"-",
         "time":"-",
-        "description":"(Format Error Type 2) We check here if the label of the annotations match with their correspondig substrings.",
+        "description":"We check here if the label of the annotations match with their correspondig substrings.",
+        "number_errors":"-",
+        "errors":[],
+        "type":"static"
+    };
+    
+    V[7] = {
+        "name":"Showing validation tree",
+        "date":"-",
+        "time":"-",
+        "description":"Building a validation tree to check types, links and contexts",
+        "number_errors":"-",
+        "errors":[],
+        "type":"static"
+    };
+    
+    V[8] = {
+        "name":"Checking pro-form",
+        "date":"-",
+        "time":"-",
+        "description":"Checking that pro-form references are mentioned elsewhere.",
         "number_errors":"-",
         "errors":[],
         "type":"static"
@@ -5534,6 +5830,19 @@ $(document).ready(function() {
                 valid_CheckSurfaceForm(idv);
                 $.unblockUI();
             }
+            else if (v["name"] == "Showing validation tree"){
+                $.blockUI({ message: null });
+                valid_CheckTree(idv);
+                $.unblockUI();
+            }
+            else if (v["name"] == "Checking pro-form"){
+                $.blockUI({ message: null });
+                valid_CheckProForms(idv);
+                $.unblockUI();
+            }
+            
+            
+            
         }
         else{
             
@@ -5933,19 +6242,21 @@ $(document).ready(function() {
     valid_spelling = function(a_index){
         var _ann = A[a_index];    
         //var text = Sentences[_ann["id_sentence"]]["text"]+".";
-        var text = id2text(D[uridoc2id(D,_ann["uridoc"])]["inDocCounter"])+".";
+        
+        var _counterIndex = uridoc2id(D,_ann["uridoc"])
+        var text = id2text(_counterIndex);
         
         Dir = [parseInt(_ann["ini"])-1/* looking before*/,  parseInt(_ann["fin"])/* looking after*/];
         for (d_i in Dir){
             var d = Dir[d_i];
             if (d<0){continue;}
             if (("\\'\".:,;-_¿?~·@¬<>»«!¡`“”’/'‘ \n\t*+}]{[^=#$%&()|°–".indexOf(text[d]) == -1)){
-                console.log("-----------");
+                /*console.log("-----------");
                 console.log(["text:",text]);
                 console.log(["label:",_ann["label"]," dir:",d," char:",text[d]]);                
                 console.log(text[d]==" ");
                 console.log(["ord( ):"," ".charCodeAt(0)]);
-                console.log(["ord(ch):",text[d].charCodeAt(0)]);
+                console.log(["ord(ch):",text[d].charCodeAt(0)]);*/
             }
             
             var NoLetter = "\\'\".:,;-_¿?~·@¬<>»«!¡`“”’/'‘ \n\t*+}]{[^=#$%&()|°–„“";
@@ -5988,6 +6299,321 @@ $(document).ready(function() {
         //displaying the content
         valid_idvToShow = _idv;
         valid_showContent();
+    }
+    
+    
+    
+    //-- 
+    
+    containTag = function(a_,tag_){
+        if ("uri2tag" in a_){
+            for (uu_i in a_["uri"]){
+                var uu = a_["uri"][uu_i];
+                if (uu in a_["uri2tag"]  && a_["uri2tag"][uu].indexOf(tag_)!=-1){
+                   return true;
+                } 
+            }
+
+        }
+        
+        return false;
+    }
+    
+    
+    shareUris = function(aa_, _aa){
+        for (uuu_i in aa_["uri"]){
+            var uuu = aa_["uri"][uuu_i];
+            if (  _aa["uri"].indexOf(uuu) != -1 ){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    valid_mentioned_elsewhere = function(_a_i){
+        if (!containTag(A[_a_i],"el:Mnt-ProForm")){
+            return true;
+        }
+        
+        var idsent = A[_a_i]["id_sentence"];
+        var iddoc = Sentences[idsent]["uridoc"];
+        
+        var L_s = [];
+        for (s__i in Sentences){
+            var sent = Sentences[s__i];
+            if (sent["uridoc"] == iddoc){
+                L_s.push(s__i.toString());
+            }
+        }
+        
+        for (a__i in A){
+            var _a = A[a__i];
+            if (L_s.indexOf(_a["id_sentence"].toString())!=-1 && a__i != _a_i){
+                if ((!containTag(_a,"el:Mnt-ProForm"))  && shareUris(A[_a_i], _a)){
+                    return true;
+                }
+            }
+        }
+        
+        return false;        
+    }
+    
+    
+    valid_CheckProForms = function(_idv){
+        var count_errors = 0;
+        for (a_i in A){
+            var ann_ = A[a_i];
+            var isCorrect = valid_mentioned_elsewhere(a_i);
+            
+            if (isCorrect == false){
+                count_errors = count_errors +1;
+                V[_idv]["errors"].push({
+                    "status":"uncorrected",
+                    "position": count_errors,
+                    "idA" : a_i,
+                    "uridoc": ann_["uridoc"],
+                    "label":ann_["label"],
+                    "id_sentence": ann_["id_sentence"],
+                    "error_detail": "Mention <i>"+ann_["label"]+"</i> is a pro-form, but should be mentioned elsewhere.",
+                });
+            }
+        } 
+        
+        //updating main table
+        V[_idv]["number_errors"] = count_errors;
+        V[_idv]["time"]= new Date().toLocaleTimeString();
+        V[_idv]["date"]= new Date().toLocaleDateString();
+        updateMainTableValidation();
+        
+        //displaying the content
+        valid_idvToShow = _idv;
+        valid_showContent();
+    }
+    
+    
+    
+    /////------- Showing validation tree
+    
+    getTagsOrderedAsText = function(L_tags){
+        Lr = [];
+        
+        for (var i_ = 1; i_<=5; i_++){
+            console.log(["i_:",i_]);
+            for (j_ in L_tags){
+                tj = L_tags[j_];
+                console.log(["tj:",tj,"-->",tax2groupColor[tj]]);
+                if (tax2groupColor[tj] == i_){
+                    Lr.push(tj);
+                    break;
+                }
+            }
+            
+        }
+        
+        return Lr.join(", ");
+    }
+    
+    prettySentence = function(pair){
+        var ids_ = pair["id_sentence"];
+        var ida_ = pair["idA"];
+        
+        var SentencesAnnotations = [A[ida_]];
+        pos = 0;
+        textOut = "";
+        var sent = Sentences[ids_]["text"];
+        var txt = id2text(uridoc2id(D,Sentences[ids_]["uridoc"]));
+        var overall = txt.indexOf(sent);
+        for (j in SentencesAnnotations){                     
+                var index = parseInt(j);
+                ann = SentencesAnnotations[j];                
+                
+
+                var ini = ann["ini"] - overall;
+                var fin = ann["fin"] - overall;
+                if (index+1 < SentencesAnnotations.length){
+                    var ann2 = SentencesAnnotations[index+1];
+                    if (ann["fin"]>ann2["ini"]){
+                        fin = ann2["ini"] - overall;
+                        ann["overlap"] = true;
+                        ann2["overlap"] = true;
+                    }
+                }
+                label = sent.substring(ini, fin);
+                
+                var st = "";
+                if ("tag" in ann){
+                    if (ann["tag"].indexOf("tax:Ambiguous")>-1){
+                        st = 'style="background-color: #5cb85c;"';
+                    }
+                }
+                if ("overlap" in ann){
+                    if (ann["overlap"] == true){
+                        st = 'style="background-color: #88783a;"';
+                    }
+                    ann["overlap"] = false;
+                }
+                //--
+                var mentionType = "";
+                var ttype = typeOfAnn(ann["uri"]);
+                
+                if ( ttype != undefined){
+                mentionType = '<i class="glyphicon '+type2icon[ttype]+'"></i>&nbsp;';  
+                }
+                //--
+                var httpTags = "";
+                if ("tag" in ann){
+                    httpTags = ann["tag"].join()+"\n";
+                }
+                httpAnnotation = '<span ide="'+ann["idA"]+'"  class="blueLabel classlabelAnnotation"  data-toggle="tooltip" title="'+httpTags+ann["uri"].join()+'" '+st+'>'+mentionType+label+'</span>';
+                textOut = textOut + sent.substring(pos,ini) + httpAnnotation;
+                pos = fin;
+            
+        }
+        textOut = textOut + sent.substring(pos,sent.length);
+        return textOut;
+        
+    }
+    
+    valid_CheckTree = function(_idv){
+        var count_errors = 0;
+        
+        var overall = 0;
+        var sent_id = -1;
+        var sent_old = 0;
+        var uridoc = "";
+        var Details = {}; //  {"mention1" : {"url1":["Ordered tags_1":[id_sent1, id_sent2, ... ]. "Ordered tags_2":{..} }, "url2":... }
+        for (a_i in A){
+            var ann_ = A[a_i];
+            var sent = Sentences[ann_["id_sentence"]]["text"];
+           
+            var bnewdoc = false;
+            if (ann_["uridoc"] != uridoc){
+                bnewdoc = true;
+                uridoc = ann_["uridoc"];
+
+                overall = 0; 
+                sent_old = sent.length + 1;
+                
+                // first sentence in this doc
+                var id_sent_temp = 0;
+                for (var iy in Sentences){
+                    if (Sentences[iy]["uridoc"] == uridoc){
+                        id_sent_temp = iy;
+                        break;
+                    }
+                }
+                
+                if (parseInt(id_sent_temp)!=parseInt(ann_["id_sentence"])){                    
+                    for (var ik = parseInt(id_sent_temp); ik<parseInt(ann_["id_sentence"]);ik++){
+                        overall = overall + Sentences[ik]["text"].length +1;
+                    }   
+                }
+                sent_id = ann_["id_sentence"];
+            }
+            
+            if (sent_id!=ann_["id_sentence"]){
+                //--- checking missing sent
+                if  (parseInt(sent_id) +1 != parseInt(ann_["id_sentence"])){
+                    for (var ik = parseInt(sent_id) +1; ik<parseInt(ann_["id_sentence"]);ik++){
+                        overall = overall + Sentences[ik]["text"].length +1;
+                    }
+                }
+                
+                //---
+                overall = overall + sent_old;
+                sent_old = sent.length + 1;
+                sent_id = ann_["id_sentence"];
+                uridoc = ann_["uridoc"];
+            }
+                          
+            var subsent = sent.substring(parseInt(ann_["ini"])-overall, parseInt(ann_["fin"])-overall);
+            
+            
+            if (!(ann_["label"] in Details)){
+                Details[ann_["label"]] = {};
+            }
+            
+            for (uri_i in ann_["uri"]){
+                var uri = ann_["uri"][uri_i];
+                if (!(uri in Details[ann_["label"]])){
+                    Details[ann_["label"]][uri] = {};
+                }
+                
+
+                if ("uri2tag" in ann_ &&  uri in ann_["uri2tag"]){
+                    var tags = ann_["uri2tag"][uri]; 
+                    var text_tags = getTagsOrderedAsText(tags);
+                    
+                    if (!(text_tags in Details[ann_["label"]][uri])){
+                        Details[ann_["label"]][uri][text_tags] = [];
+                    }
+                    
+                    console.log(Details[ann_["label"]][uri][text_tags]);
+                    Details[ann_["label"]][uri][text_tags].push({"id_sentence":ann_["id_sentence"], "idA":a_i});
+                    
+                }
+
+            }
+             
+        
+        } 
+        
+        console.log(Details)
+        //updating main table
+        V[_idv]["number_errors"] = 0;
+        V[_idv]["time"]= new Date().toLocaleTimeString();
+        V[_idv]["date"]= new Date().toLocaleDateString();
+        updateMainTableValidation();
+        
+        //displaying the contents
+        valid_idvToShow = _idv;
+        //valid_showContent();
+        
+        
+        $("#valid_output_div").html("");
+        var item_index = 0;
+        for (mention in Details){
+            item_index = item_index + 1;
+            
+            var _html = '<div class="row item_valid_details">\n';
+            _html = _html + '   <div class="col-lg-1">'+item_index.toString()+'</div>\n';
+            _html = _html + '   <div class="col-lg-11">\n';                
+            _html = _html + '      <div class="clt">\n';
+            _html = _html + '         '+mention+' ('+Object.keys(Details[mention]).length+')\n';
+            _html = _html + '         <ul>\n';
+            
+            for (uri_ in Details[mention]){                
+            
+                _html = _html + '            <li>\n';
+                _html = _html + '               <a href="'+uri_+'" target="_blank">'+uri_+'</a>\n';
+                _html = _html + '                  <ul>\n';
+                for (ordered_tags in Details[mention][uri_]){
+                    _html = _html + '                     <li>\n';
+                    _html = _html + '                        '+ordered_tags+'('+Object.keys(Details[mention][uri_][ordered_tags]).length+')\n';
+                    _html = _html + '                           <ul>\n';
+                    for (ids_i in Details[mention][uri_][ordered_tags]){
+                        var ids = Details[mention][uri_][ordered_tags][ids_i]["id_sentence"];
+                        _html = _html + '                              <li>'+prettySentence(Details[mention][uri_][ordered_tags][ids_i])+'</li>\n';
+                    }
+                    
+                    _html = _html + '                           </ul>\n';
+                    _html = _html + '                     </li>\n';
+                }
+                
+                _html = _html + '                  </ul>\n';
+                _html = _html + '            </li>\n';
+            }
+            _html = _html + '         </ul>\n';
+            _html = _html + '      </div>\n';
+            _html = _html + '   </div>\n';
+            _html = _html + '</div>\n';
+            
+               
+            $("#valid_output_div").append(_html);  
+               
+               
+        }
+        
     }
     
     
