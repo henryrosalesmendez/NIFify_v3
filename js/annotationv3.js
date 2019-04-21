@@ -413,11 +413,8 @@ $(document).ready(function() {
             
             $("input.taxAdd").each(function(){
                 var lst = $(this).select2('data');
-                console.log(["lst:",lst]);
                 var ida = $(this).attr('ida');
-                console.log(["ida",ida]);
                 var uri = $("#annotation_"+ida).val();
-                console.log(["uri",uri]);
                 if  (uri != undefined && uri!=""){
                     if (! ('uri2tag' in temp_annotation) ){
                         temp_annotation["uri2tag"] = {};
@@ -444,8 +441,6 @@ $(document).ready(function() {
                         
                         //--
                         temp_annotation["uri2tag"][uri] = list_tag;
-                        console.log("list_tag:",list_tag);
-                        console.log('temp_annotation["uri2tag"][uri]:',temp_annotation["uri2tag"][uri]);
                     }
                     
                     //
@@ -638,13 +633,9 @@ $(document).ready(function() {
             var goahead = false;
             if (allow_overlaps){
                 goahead = !ItIsRepetition({"ini":ini, "fin":fin, "uridoc":temp_annotation["uridoc"]});
-                console.log("1");
-                console.log(goahead);
             }
             else{
                 goahead = !existsOverlapping({"ini":ini, "fin":fin, "uridoc":temp_annotation["uridoc"]});
-                console.log("2");
-                console.log(goahead);
             }
 
             if (goahead){
@@ -707,10 +698,8 @@ $(document).ready(function() {
             }
             
             var typeMention = $(this).attr("mentiontype");
-            console.log("typeMention -->",typeMention)
             if (typeMention != '- Select Type -'){
                 link2type[text] = w2type[typeMention];
-                console.log(text,"----->",typeMention);
             }
             
         });
@@ -722,7 +711,6 @@ $(document).ready(function() {
             var typeMention = $("#modalSelectURI").attr("mentiontype");
             if (typeMention != '- Select Type -'){
                 link2type[in_uri] = w2type[typeMention];
-                console.log("in_uri:",in_uri,"   w2type[typeMention]:",w2type[typeMention],"    typeMention:",typeMention);
             }
         }
            
@@ -732,15 +720,6 @@ $(document).ready(function() {
         }
         
         temp_annotation["uri"] = list_uri;
-        
-        
-        /*if ($("#modalSelectTaxonomy").val()){
-            //console.log(' $("#modalSelectTaxonomy").text():', $("#modalSelectTaxonomy").text());
-            var listInputTaxonomy = $("#taxonomyInput").select2('data');
-            var tag_text = listInputTaxonomy[$("#modalSelectTaxonomy").val()]["text"];
-            //console.log("******>>>"+tag_text);
-            temp_annotation["tag"] = tag_text;//$("#modalSelectTaxonomy").text();
-        }*/
         
         var list_tag = [];
         var listInputTaxonomy = $("#taxonomyAnn").select2('data');        
@@ -759,7 +738,6 @@ $(document).ready(function() {
         
         temp_annotation["idA"] = A.length;
         temp_annotation["uridoc"] = Sentences[temp_annotation["id_sentence"]]["uridoc"];
-        //A.push(temp_annotation);
         $('#myModal').modal("hide");
 
 
@@ -783,13 +761,9 @@ $(document).ready(function() {
                 var goahead = false;
                 if (allow_overlaps){
                     goahead = !ItIsRepetition({"ini":ini, "fin":fin, "uridoc":doc["uri"]});
-                    //console.log("1");
-                    //console.log(goahead);
                 }
                 else{
                     goahead = !existsOverlapping({"ini":ini, "fin":fin, "uridoc":doc["uri"]});
-                    //console.log("2");
-                    //console.log(goahead);
                 }
 
                 if (goahead){
@@ -2605,32 +2579,21 @@ $(document).ready(function() {
             console.log(chunk);
             return false;
         }
-        //console.log("B)");
+
         var n_chunk = chunk.length;
         var r_text = chunk.substring(p_isString, n_chunk);
 
         var sent_text = parser_NIF(chunk,"nif:isString")[1];
-        //console.log("sent_text:"+sent_text);
         var rr = parseURI(chunk);
-        //console.log(".........................");
-        //console.log(rr)
         
         if (rr == undefined){
-            console.log("-->  undefined");
-            console.log(chunk);
             return false;
         }
         var _uridoc = rr[0];
         var _urisent = rr[1]; if (_urisent == ""){_urisent = _uridoc;}
         var _ini = rr[2]; if (_ini == ""){_ini = _inSentenceIni; _inSentenceIni = _inSentenceIni +1;}
         var _fin = rr[3];
-        
-        
-        //console.log(["rr",rr,"uridoc:",_uridoc]);
-        //console.log(["Sentences:",Sentences]);
-        //console.log(["_urisent:",_urisent]);
-        //console.log(["-->",_urisent]);
-        //console.log("---");
+
         
         
         var uridoc__parser = parser_NIF(chunk,"nif:broaderContext");
@@ -2649,24 +2612,16 @@ $(document).ready(function() {
         
         //
         var p_sent = urisent2id(Sentences,_urisent);
-        //console.log(["p_sent:",p_sent]);
         if (p_sent == -1){
             var sent = {"text":sent_text, "uridoc":_uridoc, "id_sent":_urisent, "ini":parseInt(_ini), "fin":parseInt(_fin)};
             Sentences.push(sent);
-            //console.log(";)");
-            //console.log(sent);
             return sent;
         }        
         else if (Sentences[p_sent]["text"] == undefined){
-            //console.log(["--text:",sent_text]);
             Sentences[p_sent]["text"] = sent_text;
             Sentences[p_sent]["ini"] = parseInt(_ini);
             Sentences[p_sent]["fin"] = parseInt(_fin);
-            //console.log(":(");
-            //console.log(Sentences[p_sent]);
         }
-        //console.log("xD");
-        //console.log(["p_sent:",p_sent,"   Sentences[p_sent]:",Sentences[p_sent]]);
         return Sentences[p_sent];
     }
     
@@ -2719,9 +2674,6 @@ $(document).ready(function() {
             }
             else { //end of the chunk
                 chunk = chunk + l;
-                //console.log("---------------------");
-                //console.log(chunk);
-                //console.log(".....................");
                 
                 if (chunk.indexOf("@prefix")!=-1){
                     chunk = "";
@@ -2896,7 +2848,6 @@ $(document).ready(function() {
                         //console.log("--> SENT");
                         if (reading_sentence(chunk) == false){
                             //return false;
-                            console.log("continuing..");
                             //continue;
                         }
                     }
@@ -3141,22 +3092,13 @@ $(document).ready(function() {
         
         
         // finding missing sentences (sentences as documents)
-        //console.log("Begining......");
-        //console.log(findingS);
         for (aa_i in A){
             var aa = A[aa_i];
             var ids = aa["urisent"];
-            //console.log("-----");
-            //console.log(["aa_i:",aa_i]);
-            //console.log(["aa:",aa]);
-            //console.log(aa["urisent"]);
             
             if (!(ids in findingS)){
                 var pdoc = uridoc2id_2(D,ids);
-                
-                //console.log(["ids:",ids]);
-                //urisent2id(Sentences,urisent);
-                //console.log(["pdoc:",pdoc]);
+
                 if (pdoc != -1){
                     
                     if (!("text" in D[pdoc])){
@@ -3261,30 +3203,6 @@ $(document).ready(function() {
         ann = A[ide];
         $("#modalModifyAnnotation-title-desc").val(ann["label"]);
         $("#modalModifyAnnotationLabel").val(ann["label"]);
-        
-
-
-       
-        /*$("#modalModifyAnnotationSelectTaxonomy").empty();
-        var listInputTaxonomy = $("#taxonomyInput").select2('data');
-        select = document.getElementById('modalModifyAnnotationSelectTaxonomy');
-        
-        //--none first
-        var optNone = document.createElement('option');
-        optNone.value = 1000;
-        optNone.text = "-none-";
-        select.add(optNone);
-        
-        //others
-        if (listInputTaxonomy.length != 0){
-            for (i in listInputTaxonomy){
-                v = listInputTaxonomy[i];
-                var option = document.createElement('option');
-                option.value = i;
-                option.text = v["text"];
-                select.add(option);
-            }
-        }*/  
 
         //$("#modalModifyAnnotationSelectURI").val(ann["uri"]);
         remove_input_uris();
@@ -3304,6 +3222,7 @@ $(document).ready(function() {
                 }
                 
             }
+            
 
             var html ='<div class="taIdentRefContainer"><div class="control-group input-group" style="margin-top:10px">'+
                       '<input id="annotation_'+k+'" mentiontype="'+mtype+'" value="'+text+'" type="text" name="addmore[]" class="form-control taIdentRef" placeholder="Link of the selected entity mention">'+
@@ -3382,12 +3301,6 @@ $(document).ready(function() {
 
         $("#btn_modify").attr("ide",ide);
         $("#btn_modify").attr("surfaceform",ann["label"]);
-
-        /*$("#btn_modify_this_doc").attr("ide",ide);
-        $("#btn_modify_this_doc").attr("surfaceform",ann["label"]);
-
-        $("#btn_modify_all_doc").attr("ide",ide);
-        $("#btn_modify_all_doc").attr("surfaceform",ann["label"]);*/
         
         $('#taxonomyMod').val('').trigger("change");
 
@@ -3404,13 +3317,9 @@ $(document).ready(function() {
     $("#btn_delete_ann").click(function(){
         var ide = $(this).attr("ide");
         A.splice(ide,1);
-        //console.log("1");
         restar_idA_in_Annotations();
-        //console.log("2");
         buildNIFCorpora(); 
-        //console.log("3");
         remove_input_uris();
-        //console.log("4");
     });
     
     
@@ -3440,7 +3349,7 @@ $(document).ready(function() {
           }
 
           var text = $("#modalModifyAnnotationSelectURI").val();
-          var html ='<div class="control-group input-group taIdentRefContainer" style="margin-top:10px">'+
+          var html ='<div class="taIdentRefContainer"><div class="control-group input-group" style="margin-top:10px">'+
                       '<input id="annotation_'+id+'" mentiontype="'+mtype+'" type="text" name="addmore[]" class="form-control taIdentRef" placeholder="Link of the selected entity mention">'+
                       '<div class="input-group-btn"> '+
                           '<button id="btn_type_annotation_'+id+'" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-    haspopup="true" aria-expanded="false">'+ text_type+
@@ -3456,7 +3365,7 @@ $(document).ready(function() {
                           '<button class="btn btn-info link" type="button" onclick="window.open(\''+text+'\',\'_blank\')"><i class="glyphicon glyphicon-link"></i>Link</button>'+
                           '<button class="btn btn-danger remove" type="button"><i class="glyphicon glyphicon-remove"></i> Remove</button>'+
                       '</div>'+
-                   '</div><input type="text" style="width:100%!important;" id="taxonomyAnnMod_'+id+'" class="taxonomyInputClass"/></div>';
+                   '</div><input type="text" ida="'+id+'" style="width:100%!important;" id="taxonomyAnnMod_'+id+'" class="taxonomyInputClass taxMod"/></div>';
           
           
           $(".after-add-more-modification").after(html);
@@ -3477,16 +3386,24 @@ $(document).ready(function() {
           
           //-----
           
-          var lst = $("#taxonomyAnn111111111").select2('data');
+          var lst = $("#taxonomyMod").select2('data');
+          //console.log(["lst:",lst])
           var ids = []; 
           for (i in lst){
               var v = lst[i];
-              ids.push({"id":tax2id[tt], "text":tt});
+              //ids.push({"id":tax2id[tt], "text":tt});
+              ids.push({"id":v["id"], "text":v["text"]});
           }
-          console.log(ids);
+          
+          //console.log(["ids:",ids]);
           $('#taxonomyAnnMod_'+id).select2('data',ids);
 
+          
+          
+          
+
           //----
+          $('#taxonomyMod').val('').trigger("change");
           $("#annotation_"+id).val(text);
           $("#modalModifyAnnotationSelectURI").attr("number",parseInt(id)+1);
           $("#modalModifyAnnotationSelectURI").val("");
@@ -3532,22 +3449,14 @@ $(document).ready(function() {
                 if (text!=""){
                     list_uri.push(text);
                 }
-                
-                // -- added
-                //if (link2type[text] == undefined){
-                    var typeMention = $(this).attr("mentiontype");
-                    if (typeMention != '- Select Type -'){
-                        link2type[text] = w2type[typeMention];
-                        console.log("uri:",text,"   w2type[typeMention]:",w2type[typeMention],"   typeMention:",typeMention);
-                    }
-                    else {
-                        delete link2type[text];
-                    }
-                //}
-                
-                
 
-                
+                var typeMention = $(this).attr("mentiontype");
+                if (typeMention != '- Select Type -'){
+                    link2type[text] = w2type[typeMention];
+                }
+                else {
+                    delete link2type[text];
+                }
             });
             
             
@@ -3796,10 +3705,9 @@ $(document).ready(function() {
           var ids = []; 
           for (i in lst){
               var v = lst[i];
-              console.log(v);
               ids.push({"id":v["id"], "text":v["text"]});
           }
-          console.log(ids);
+
           $('#taxonomyAnn_'+id).select2('data',ids);
           
           
@@ -4480,7 +4388,6 @@ $(document).ready(function() {
     });*/
     
     dropdown_action = function(id_parent, mtype){
-        console.log(id_parent, mtype);
         var html_ = "- Select Type -";
         if (mtype != html_){
             var ttyp = w2type[mtype];
@@ -4490,14 +4397,10 @@ $(document).ready(function() {
         }
           
         $("#btn_type_"+id_parent).html(html_);
-        console.log("antes");
         if (mtype != "- Select Type -"){
-            console.log("1",mtype);
-            console.log("--->",$("#"+id_parent).attr("mentiontype"),mtype);
             $("#"+id_parent).attr("mentiontype",mtype);            
         }
         else{
-            console.log("2");
             $("#"+id_parent).attr("mentiontype","- Select Type -");  
         }
     };
