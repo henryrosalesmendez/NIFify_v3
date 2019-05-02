@@ -1341,11 +1341,17 @@ $(document).ready(function() {
                        mentionType = '<i class="glyphicon '+type2icon[ttype]+'"></i>&nbsp;';  
                      }
                      //--
-                     var httpTags = "";
-                     if ("tag" in ann){
-                         httpTags = ann["tag"].join()+"\n";
+                     betterToltip = ""
+                     for (u__i in ann["uri"]){
+                         var u__ = ann["uri"][u__i];
+                         if (("uri2tag" in ann) && (u__ in ann["uri2tag"])){
+                             betterToltip = betterToltip + ann["uri2tag"][u__].join() + "\n";
+                         }
+                         betterToltip = betterToltip + u__+ "\n\n";
                      }
-                     httpAnnotation = '<span ide="'+ann["idA"]+'"  class="blueLabel classlabelAnnotation"  data-toggle="tooltip" title="'+httpTags+ann["uri"].join()+'" '+st+'>'+mentionType+label+'</span>';
+                     
+                     
+                     httpAnnotation = '<span ide="'+ann["idA"]+'"  class="blueLabel classlabelAnnotation"  data-toggle="tooltip" title="'+betterToltip+'" '+st+'>'+mentionType+label+'</span>';
                      textOut = textOut + sent.substring(pos,ini) + httpAnnotation;
                      pos = fin;
                  }  
@@ -3443,199 +3449,199 @@ $(document).ready(function() {
 
     $("#btn_modify").click(function(){
         var ide = $(this).attr("ide");
-            var list_uri = [];
-            $('.taIdentRef').each(function() {
-                var text = $(this).val();
-                if (text!=""){
-                    list_uri.push(text);
-                }
+        var list_uri = [];
+        $('.taIdentRef').each(function() {
+            var text = $(this).val();
+            if (text!=""){
+                list_uri.push(text);
+            }
 
-                var typeMention = $(this).attr("mentiontype");
-                if (typeMention != '- Select Type -'){
-                    link2type[text] = w2type[typeMention];
-                }
-                else {
-                    delete link2type[text];
-                }
-            });
-            
-            
-            
-            //tags
-            
-            $("input.taxMod").each(function(){
-                var lst = $(this).select2('data');
-                var ida = $(this).attr('ida');
-                var uri = $("#annotation_"+ida).val();
-                if  (uri != undefined && uri!=""){
-                    if (! ('uri2tag' in A[ide]) ){
-                        A[ide]["uri2tag"] = {};
-                    }
-                    
-                    //
-                       
-                    if (lst.length != 0){
-                        //--
-                        var list_tag = []; 
-                        for (i in lst){
-                            var v = lst[i];
-                            list_tag.push(v["text"])
-                        }
-                        
-                        //--
-                        if ( !('tag' in A[ide]) ){                            
-                            A[ide]["tag"] = list_tag;
-                        }
-                        else{
-                            A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
-                        }
-                        
-                        
-                        //--
-                        A[ide]["uri2tag"][uri] = list_tag;
-                    }
-                    else{
-                        delete A[ide]["uri2tag"][uri];
-                    }
-                    
-                    //
-                    
-                    
-                }
-            });
-
-            //-- see adding inputs
-            var in_uri = $("#modalModifyAnnotationSelectURI").val();
-            if (in_uri){
-                list_uri.push(in_uri);
-                var typeMention = $("#modalModifyAnnotationSelectURI").attr("mentiontype");
-                if (typeMention != '- Select Type -' ){
-                    link2type[in_uri] = w2type[typeMention];
-                    //console.log("in_uri:",in_uri,"   w2type[typeMention]:",w2type[typeMention],"    typeMention:",typeMention);
+            var typeMention = $(this).attr("mentiontype");
+            if (typeMention != '- Select Type -'){
+                link2type[text] = w2type[typeMention];
+            }
+            else {
+                delete link2type[text];
+            }
+        });
+        
+        
+        
+        //tags
+        
+        $("input.taxMod").each(function(){
+            var lst = $(this).select2('data');
+            var ida = $(this).attr('ida');
+            var uri = $("#annotation_"+ida).val();
+            if  (uri != undefined && uri!=""){
+                if (! ('uri2tag' in A[ide]) ){
+                    A[ide]["uri2tag"] = {};
                 }
                 
-                
-                var lst = $("#taxonomyMod").select2('data');
-                var uri = in_uri;
-                if  (uri != undefined && uri!=""){
-                    if (! ('uri2tag' in A[ide]) ){
-                        A[ide]["uri2tag"] = {};
+                //
+                    
+                if (lst.length != 0){
+                    //--
+                    var list_tag = []; 
+                    for (i in lst){
+                        var v = lst[i];
+                        list_tag.push(v["text"])
                     }
                     
-                    //
-                       
-                    if (lst.length != 0){
-                        //--
-                        var list_tag = []; 
-                        for (i in lst){
-                            var v = lst[i];
-                            list_tag.push(v["text"])
-                        }
-                        
-                        //--
-                        if ( !('tag' in A[ide]) ){                            
-                            A[ide]["tag"] = list_tag;
-                        }
-                        else{
-                            A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
-                        }
-                        
-                        
-                        //--
-                        A[ide]["uri2tag"][uri] = list_tag;
+                    //--
+                    if ( !('tag' in A[ide]) ){                            
+                        A[ide]["tag"] = list_tag;
                     }
                     else{
-                        delete A[ide]["uri2tag"][uri];
+                        A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
                     }
                     
-                    //
                     
-                    
+                    //--
+                    A[ide]["uri2tag"][uri] = list_tag;
                 }
+                else{
+                    delete A[ide]["uri2tag"][uri];
+                }
+                
+                //
+                
+                
+            }
+        });
+
+        //-- see adding inputs
+        var in_uri = $("#modalModifyAnnotationSelectURI").val();
+        if (in_uri){
+            list_uri.push(in_uri);
+            var typeMention = $("#modalModifyAnnotationSelectURI").attr("mentiontype");
+            if (typeMention != '- Select Type -' ){
+                link2type[in_uri] = w2type[typeMention];
+                //console.log("in_uri:",in_uri,"   w2type[typeMention]:",w2type[typeMention],"    typeMention:",typeMention);
+            }
+            
+            
+            var lst = $("#taxonomyMod").select2('data');
+            var uri = in_uri;
+            if  (uri != undefined && uri!=""){
+                if (! ('uri2tag' in A[ide]) ){
+                    A[ide]["uri2tag"] = {};
+                }
+                
+                //
+                    
+                if (lst.length != 0){
+                    //--
+                    var list_tag = []; 
+                    for (i in lst){
+                        var v = lst[i];
+                        list_tag.push(v["text"])
+                    }
+                    
+                    //--
+                    if ( !('tag' in A[ide]) ){                            
+                        A[ide]["tag"] = list_tag;
+                    }
+                    else{
+                        A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
+                    }
+                    
+                    
+                    //--
+                    A[ide]["uri2tag"][uri] = list_tag;
+                }
+                else{
+                    delete A[ide]["uri2tag"][uri];
+                }
+                
+                //
                 
                 
             }
             
             
-            //---
+        }
+        
+        
+        //---
+        
             
-               
-            if (list_uri.length == 0){
-                warning_alert("Debe de entrar una URI");
-                return 0;
+        if (list_uri.length == 0){
+            warning_alert("Debe de entrar una URI");
+            return 0;
+        }
+        
+        A[ide]["uri"] = list_uri;
+
+        /*
+        var list_tag = [];
+        var listInputTaxonomy = $("#taxonomyMod").select2('data');        
+        if (listInputTaxonomy.length != 0){
+            for (i in listInputTaxonomy){
+                var v = listInputTaxonomy[i];
+                list_tag.push(v["text"])
+            }
+            A[ide]["tag"] = list_tag;
+        } 
+        else{
+            delete A[ide]["tag"];
+        }
+        */
+        
+        
+        // comment
+        var comment = $("#commentMod").val();
+        if (comment != undefined && comment.length >0){
+            A[ide]["comment"] = comment;
+        }
+        else{
+            delete A[ide]["comment"];
+        }
+
+        
+        //surface form
+        var ann_label = $("#modalModifyAnnotationLabel").val();
+        var btn_label = $("#btn_modify").attr("surfaceform");
+        if (ann_label != btn_label){
+            
+            // actualizo esta anotacion --------
+            var ids = parseInt(A[ide]["id_sentence"]);
+            var slength = Sentences[ids]["text"].length;
+            var lbeforeToS = offset_sentence(ids,A[ide]["uridoc"]);
+            var sini = A[ide]["ini"] - lbeforeToS;
+            var sfin = A[ide]["fin"] - lbeforeToS;
+            var new_s = Sentences[ids]["text"].substr(0,sini) +ann_label+ Sentences[ids]["text"].substr(sfin,slength);
+            Sentences[ids]["text"] = new_s;
+            urldoc = Sentences[ids]["uridoc"];
+            A[ide]["fin"] = A[ide]["ini"] + ann_label.length;
+            A[ide]["label"] = ann_label;
+            
+            // actualizo los ids de las annotaciones de esta misma oracion que ocurren luego de ellas ------
+            var delta = ann_label.length - btn_label.length;
+            for (k in A){
+                ann = A[k];
+                if (ann["uridoc"] != urldoc){
+                    continue;
+                }
+                //if (ann["id_sentence"]>A[ide]["id_sentence"]  ||  (ann["id_sentence"]==A[ide]["id_sentence"] && ann["ini"]>A[ide]["ini"])){
+                if (ann["ini"]>A[ide]["ini"]){
+                    ann["ini"] = ann["ini"] + delta;
+                    ann["fin"] = ann["fin"] + delta;
+                }
             }
             
-            A[ide]["uri"] = list_uri;
- 
+            // actualizo el inDoc --------
+            update_all_sentences_all_documents();
             /*
-            var list_tag = [];
-            var listInputTaxonomy = $("#taxonomyMod").select2('data');        
-            if (listInputTaxonomy.length != 0){
-                for (i in listInputTaxonomy){
-                    var v = listInputTaxonomy[i];
-                    list_tag.push(v["text"])
-                }
-                A[ide]["tag"] = list_tag;
-            } 
-            else{
-                delete A[ide]["tag"];
+            var text = "";
+            for (i in Sentences){
+                s = Sentences[i]["text"];
+                text= text  + s + "\n";
             }
-            */
-            
-            
-            // comment
-            var comment = $("#commentMod").val();
-            if (comment != undefined && comment.length >0){
-                A[ide]["comment"] = comment;
-            }
-            else{
-                delete A[ide]["comment"];
-            }
-
-            
-            //surface form
-            var ann_label = $("#modalModifyAnnotationLabel").val();
-            var btn_label = $("#btn_modify").attr("surfaceform");
-            if (ann_label != btn_label){
-                
-                // actualizo esta anotacion --------
-                var ids = parseInt(A[ide]["id_sentence"]);
-                var slength = Sentences[ids]["text"].length;
-                var lbeforeToS = offset_sentence(ids,A[ide]["uridoc"]);
-                var sini = A[ide]["ini"] - lbeforeToS;
-                var sfin = A[ide]["fin"] - lbeforeToS;
-                var new_s = Sentences[ids]["text"].substr(0,sini) +ann_label+ Sentences[ids]["text"].substr(sfin,slength);
-                Sentences[ids]["text"] = new_s;
-                urldoc = Sentences[ids]["uridoc"];
-                A[ide]["fin"] = A[ide]["ini"] + ann_label.length;
-                A[ide]["label"] = ann_label;
-                
-                // actualizo los ids de las annotaciones de esta misma oracion que ocurren luego de ellas ------
-                var delta = ann_label.length - btn_label.length;
-                for (k in A){
-                    ann = A[k];
-                    if (ann["uridoc"] != urldoc){
-                        continue;
-                    }
-                    //if (ann["id_sentence"]>A[ide]["id_sentence"]  ||  (ann["id_sentence"]==A[ide]["id_sentence"] && ann["ini"]>A[ide]["ini"])){
-                    if (ann["ini"]>A[ide]["ini"]){
-                        ann["ini"] = ann["ini"] + delta;
-                        ann["fin"] = ann["fin"] + delta;
-                    }
-                }
-                
-                // actualizo el inDoc --------
-                update_all_sentences_all_documents();
-                /*
-                var text = "";
-                for (i in Sentences){
-                    s = Sentences[i]["text"];
-                    text= text  + s + "\n";
-                }
-                n = text.length;
-                $("#inDoc").val(text);*/
-            }
-        //}
+            n = text.length;
+            $("#inDoc").val(text);*/
+        }
+    
         $("#nifdoc").val("");
         buildNIFCorpora(); 
         $('#modalModifyAnnotation').modal("hide"); 
