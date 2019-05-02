@@ -3447,6 +3447,8 @@ $(document).ready(function() {
     }
     
 
+    
+    //-----
     $("#btn_modify").click(function(){
         var ide = $(this).attr("ide");
         var list_uri = [];
@@ -3465,14 +3467,13 @@ $(document).ready(function() {
             }
         });
         
-        
-        
         //tags
         
         $("input.taxMod").each(function(){
             var lst = $(this).select2('data');
             var ida = $(this).attr('ida');
             var uri = $("#annotation_"+ida).val();
+            A[ide]["tag"] = []
             if  (uri != undefined && uri!=""){
                 if (! ('uri2tag' in A[ide]) ){
                     A[ide]["uri2tag"] = {};
@@ -3489,27 +3490,15 @@ $(document).ready(function() {
                     }
                     
                     //--
-                    if ( !('tag' in A[ide]) ){                            
-                        A[ide]["tag"] = list_tag;
-                    }
-                    else{
-                        A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
-                    }
-                    
-                    
-                    //--
                     A[ide]["uri2tag"][uri] = list_tag;
+                    A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
                 }
                 else{
                     delete A[ide]["uri2tag"][uri];
                 }
-                
-                //
-                
-                
             }
         });
-
+        
         //-- see adding inputs
         var in_uri = $("#modalModifyAnnotationSelectURI").val();
         if (in_uri){
@@ -3517,17 +3506,14 @@ $(document).ready(function() {
             var typeMention = $("#modalModifyAnnotationSelectURI").attr("mentiontype");
             if (typeMention != '- Select Type -' ){
                 link2type[in_uri] = w2type[typeMention];
-                //console.log("in_uri:",in_uri,"   w2type[typeMention]:",w2type[typeMention],"    typeMention:",typeMention);
             }
-            
             
             var lst = $("#taxonomyMod").select2('data');
             var uri = in_uri;
             if  (uri != undefined && uri!=""){
                 if (! ('uri2tag' in A[ide]) ){
                     A[ide]["uri2tag"] = {};
-                }
-                
+                }                
                 //
                     
                 if (lst.length != 0){
@@ -3546,7 +3532,6 @@ $(document).ready(function() {
                         A[ide]["tag"] = A[ide]["tag"].concat(list_tag);
                     }
                     
-                    
                     //--
                     A[ide]["uri2tag"][uri] = list_tag;
                 }
@@ -3555,38 +3540,16 @@ $(document).ready(function() {
                 }
                 
                 //
-                
-                
             }
-            
-            
         }
         
-        
         //---
-        
-            
         if (list_uri.length == 0){
             warning_alert("Debe de entrar una URI");
             return 0;
         }
         
         A[ide]["uri"] = list_uri;
-
-        /*
-        var list_tag = [];
-        var listInputTaxonomy = $("#taxonomyMod").select2('data');        
-        if (listInputTaxonomy.length != 0){
-            for (i in listInputTaxonomy){
-                var v = listInputTaxonomy[i];
-                list_tag.push(v["text"])
-            }
-            A[ide]["tag"] = list_tag;
-        } 
-        else{
-            delete A[ide]["tag"];
-        }
-        */
         
         
         // comment
@@ -3623,7 +3586,7 @@ $(document).ready(function() {
                 if (ann["uridoc"] != urldoc){
                     continue;
                 }
-                //if (ann["id_sentence"]>A[ide]["id_sentence"]  ||  (ann["id_sentence"]==A[ide]["id_sentence"] && ann["ini"]>A[ide]["ini"])){
+                
                 if (ann["ini"]>A[ide]["ini"]){
                     ann["ini"] = ann["ini"] + delta;
                     ann["fin"] = ann["fin"] + delta;
@@ -3632,14 +3595,6 @@ $(document).ready(function() {
             
             // actualizo el inDoc --------
             update_all_sentences_all_documents();
-            /*
-            var text = "";
-            for (i in Sentences){
-                s = Sentences[i]["text"];
-                text= text  + s + "\n";
-            }
-            n = text.length;
-            $("#inDoc").val(text);*/
         }
     
         $("#nifdoc").val("");
@@ -3648,7 +3603,13 @@ $(document).ready(function() {
         remove_input_uris();
     });
     
-
+    
+    
+    
+    
+    
+    
+    //-----------------
     $('ul.tabs li').click(function(){
         var tab_id = $(this).attr('data-tab');
 
