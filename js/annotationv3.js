@@ -5474,7 +5474,7 @@ $(document).ready(function() {
         "name":"Link validations",
         "date":"-",
         "time":"-",
-        "description":"Here we check if each link is valid or not. Also, we identify if they are ambiguous or redirect Wikipages",
+        "description":"Here we check if each link is valid or not. Also, we identify if there are ambiguous or redirect Wikipages.",
         "number_errors":"-",
         "errors":[],
         "type":"static",
@@ -5506,7 +5506,7 @@ $(document).ready(function() {
         "name":"Refining References",
         "date":"-",
         "time":"-",
-        "description":"Here you can keep the mnt:AntecedentRf/mnt:CoreferenceRf tags only for Proper Names and Pro-Forms",
+        "description":"Here you can keep the mnt:AntecedentRf/mnt:CoreferenceRf tags only for Proper Names and Pro-Forms.",
         "number_errors":"-",
         "errors":[],
         "type":"dinamic",
@@ -5528,7 +5528,7 @@ $(document).ready(function() {
         "name":"Surface form checker",
         "date":"-",
         "time":"-",
-        "description":"We check here if the label of the annotations match with their correspondig substrings.",
+        "description":"We check here if the label of the annotations match with their corresponding substrings.",
         "number_errors":"-",
         "errors":[],
         "type":"static"
@@ -5538,7 +5538,7 @@ $(document).ready(function() {
         "name":"Validation tree",
         "date":"-",
         "time":"-",
-        "description":"Building a validation tree to check types, links and contexts",
+        "description":"Building a validation tree to check types, links and contexts.",
         "number_errors":"-",
         "errors":[],
         "type":"static"
@@ -5564,7 +5564,7 @@ $(document).ready(function() {
                         '<tr>'+
                             '<th scope="col" style="width: 50px;">#</th>'+
                             '<th scope="col" style="width: 200px;">Name</th>'+
-                            '<th scope="col" style="width: 70px;">Erros</th>'+
+                            '<th scope="col" style="width: 70px;">Errors</th>'+
                             '<th scope="col" style="width: 100px;">Date</th>'+
                             '<th scope="col" style="width: 100px;">Time</th>'+
                             '<th scope="col">Description</th>'+
@@ -5586,13 +5586,13 @@ $(document).ready(function() {
            if ("requireInternet" in v && v["requireInternet"] == true){
                color_btn = "btn-success";    
            }
-           var actions = '<button class="btn '+color_btn+' valid_btnRun" type="button" idv="'+i+'" data-toggle="tooltip" title="Run cheker '+v["name"]+'"><i class="glyphicon glyphicon-expand"></i></button>';
+           var actions = '<button class="btn '+color_btn+' valid_btnRun" type="button" idv="'+i+'" data-toggle="tooltip" title="Run checker: '+v["name"]+'"><i class="glyphicon glyphicon-expand"></i></button>';
            
            if (v["number_errors"]!="-"){
                ttt = '<i class="fa fa-lg fa-check"></i>';
                classColor='class="text-primary"';
                actions = '<button class="btn btn-secondary valid_btnDescription" type="button" idv="'+i+'" data-toggle="tooltip" title="Details of '+v["name"]+'"><i class="glyphicon glyphicon-th"></i></button>'+
-               '<button class="btn '+color_btn+' valid_btnRun" type="button" idv="'+i+'" data-toggle="tooltip" title="Run cheker '+v["name"]+'"><i class="glyphicon glyphicon-repeat"></i></button>';
+               '<button class="btn '+color_btn+' valid_btnRun" type="button" idv="'+i+'" data-toggle="tooltip" title="Run checker: '+v["name"]+'"><i class="glyphicon glyphicon-repeat"></i></button>';
                
            }
 
@@ -5989,6 +5989,10 @@ $(document).ready(function() {
         for (a_i in A){
             var ann_ = A[a_i];
             if (!("tag" in ann)){continue;}
+            if (ann_["tag"] == undefined){
+                console.log(["tag undefined",ann_]);
+                continue;            
+            }
             var correctOverlapTag = valid_overlap_tag(a_i);
             
             if (ann_["tag"].indexOf(correctOverlapTag) == -1){
