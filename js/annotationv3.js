@@ -2557,6 +2557,10 @@ $(document).ready(function() {
                 else if (ch == ">"){
                     return [uri_doc,tt,ini_sent,fin_sent];
                 }
+                else if (ch==";"){
+                    state = 6;
+                    tt = tt + ch;
+                }
                 else {
                     state = 5;
                     tt = tt + ch;
@@ -2565,6 +2569,14 @@ $(document).ready(function() {
             else if (state == 5){
                 if (ch == ">"){
                     return [uri_doc,tt,"",""]
+                }
+                else {
+                    tt = tt + ch;
+                }
+            }
+            else if (state == 6){
+                if (ch == ">"){
+                    return [uri_doc,tt,ini_sent,fin_sent]
                 }
                 else {
                     tt = tt + ch;
@@ -2766,6 +2778,7 @@ $(document).ready(function() {
                         
                         var startPosition = parser_NIF(chunk,"nif:beginIndex")[1];
                         var endPosition = parser_NIF(chunk,"nif:endIndex")[1];
+                        //console.log(["startPosition:",startPosition, " endPosition:",endPosition," _ini:",_ini," _fin:",_fin,"_uriann:",_uriann])
                         if (startPosition != _ini || endPosition != _fin){
                             addToValidLoad("Differences in the positions ("+startPosition+","+endPosition+") with the specified in the nif:Phrase "+_uriann);
                         }
