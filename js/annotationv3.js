@@ -6754,50 +6754,77 @@ $(document).ready(function() {
     }
     
     
-    valid_delete_tags = function(Tags, L){
-        var R_tags = [];
-        for (vt_i in Tags){
-            var vt_t = Tags[vt_i];
-            var found = false;
-            for (vt_j in L){
-                var vt_t1 = L[vt_j];
-                if (vt_t == vt_t1){
-                    found = true;
-                    break;
+    valid_delete_tags = function(ann, L){
+        var R_tags_overall = [];
+        for (uuri_i in ann["uri"]){
+            var uri_ = ann["uri"][uuri_i];
+            var R_tags = [];
+            for (vt_i in ann["uri2tag"][uri_]){
+                var vt_t = ann["uri2tag"][uri_][vt_i];
+                var found = false;
+                for (vt_j in L){
+                    var vt_t1 = L[vt_j];
+                    if (vt_t == vt_t1){
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (found == false){
+                    R_tags.push(vt_t);
+                    R_tags_overall.push(vt_t);
                 }
             }
             
-            if (found == false){
-                R_tags.push(vt_t);
+            // add to uri2tag
+            A[ann["idA"]]["uri2tag"][uri_] = [];
+            for (it__i in R_tags){
+                var it__ = R_tags[it__i];
+                A[ann["idA"]]["uri2tag"][uri_].push(it__);
             }
         }
-        return R_tags;
+        
+        
+        // add to uri
+        A[ann["idA"]]["tag"] = [];
+        for (it__i in R_tags_overall){
+            var it__ = R_tags_overall[it__i];
+            A[ann["idA"]]["tag"].push(it__);
+        }
     }
     
     
-    valid_add_if_not_contains = function(Tags, L){
-        var R_tags = [];
-        for (vt_i in Tags){
-            var vt_t = Tags[vt_i];
-            R_tags.push(vt_t);
-        }
-        
-        for (vt_i in L){
-            var vt_l = L[vt_i];
-            var found = false;
-            for (vt_j in Tags){
-                var vt_t = Tags[vt_j];
-                if (vt_l == vt_t){
-                    found = true;
-                    break;
+    valid_add_if_not_contains = function(ann, L){
+        for (uuri_i in ann["uri"]){
+            var uri_ = ann["uri"][uuri_i];
+            for (vt_i in L){
+                var vt_l = L[vt_i];
+                var found = false;
+                for (vt_j in ann["uri2tag"][uri_]){
+                    var vt_t = ann["uri2tag"][uri_][vt_j];
+                    if (vt_l == vt_t){
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (found == false){
+                    A[ann["idA"]]["uri2tag"][uri_].push(vt_l);
+                    //
                 }
             }
-            
-            if (found == false){
-                R_tags.push(vt_l);
+        }
+        
+        // update general tag
+        A[ann["idA"]]["tag"] = [];
+        for (uuri_i in ann["uri"]){
+            var uri_ = ann["uri"][uuri_i];
+            for (vt_j in ann["uri2tag"][uri_]){
+                var vt_t = ann["uri2tag"][uri_][vt_j];
+                A[ann["idA"]]["tag"].push(vt_t);
             }
         }
-        return R_tags;
+        
     }
     
     
@@ -6808,7 +6835,7 @@ $(document).ready(function() {
                 var L = textBetween(exp,"(",")").split(",");
                 var ann = A[f_e["idA"]];
                 if ("tag" in ann){
-                    ann["tag"] = valid_delete_tags(ann["tag"], L);
+                    valid_delete_tags(ann, L);
                 }                
             }
             
@@ -6817,7 +6844,7 @@ $(document).ready(function() {
                 var L = textBetween(exp,"[","]").split(",");
                 var ann = A[f_e["idA"]];
                 console.log(["ann:",ann]);
-                ann["tag"] = valid_add_if_not_contains(ann["tag"],L);
+                valid_add_if_not_contains(ann,L);
             }
     }
     
