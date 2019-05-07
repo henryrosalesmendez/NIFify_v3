@@ -5503,7 +5503,7 @@ $(document).ready(function() {
         "errors":[],
         "type":"static"
     };
-    
+    /*
     V[3] = {
         "name":"Reference checker",
         "date":"-",
@@ -5525,9 +5525,9 @@ $(document).ready(function() {
         "type":"dinamic",
         "automatic_expresion":"<tag@el:Mnt-NumericTemporal,tag@el:Mnt-CommonForm><tag@mnt:AntecedentRf,tag@mnt:CoreferenceRf>%(mnt:AntecedentRf,mnt:CoreferenceRf)"
     };
+    */
     
-    
-    V[5] = {
+    V[3] = {
         "name":"Spelling checker",
         "date":"-",
         "time":"-",
@@ -5537,7 +5537,7 @@ $(document).ready(function() {
         "type":"static"
     };
     
-    V[6] = {
+    V[4] = {
         "name":"Surface form checker",
         "date":"-",
         "time":"-",
@@ -5547,7 +5547,7 @@ $(document).ready(function() {
         "type":"static"
     };
     
-    V[7] = {
+    V[5] = {
         "name":"Validation tree",
         "date":"-",
         "time":"-",
@@ -5557,11 +5557,21 @@ $(document).ready(function() {
         "type":"static"
     };
     
-    V[8] = {
+    V[6] = {
         "name":"Checking pro-form",
         "date":"-",
         "time":"-",
         "description":"Checking that pro-form references are mentioned elsewhere.",
+        "number_errors":"-",
+        "errors":[],
+        "type":"static"
+    };
+    
+    V[7] = {
+        "name":"Cheking categories",
+        "date":"-",
+        "time":"-",
+        "description":"Checking if there are annotations (a) with two tags of the same category or (b) not covering one category .",
         "number_errors":"-",
         "errors":[],
         "type":"static"
@@ -5721,6 +5731,11 @@ $(document).ready(function() {
             else if (v["name"] == "Checking pro-form"){
                 $.blockUI({ message: null });
                 valid_CheckProForms(idv);
+                $.unblockUI();
+            }
+            else if (v["name"] == "Cheking categories"){
+                $.blockUI({ message: null });
+                valid_CheckCategories(idv);
                 $.unblockUI();
             }
             
@@ -6279,16 +6294,74 @@ $(document).ready(function() {
     
     
     
+    
+    valid_categories = function(_id_ann){
+        
+        for (ui in A[_id_ann]["uri"]){
+            var u = A[_id_ann]["uri"][ui];
+            if (!(u in A[_id_ann]["uri2tag"])){
+                return "Mention <i>"+A[_id_ann]["label"]+"</i> has no tags for the uri <i>"+u+"</i>."
+            }
+            
+            U = {};
+            for (tg_i in A[_id_ann]["uri2tag"][u]){
+                tg = A[_id_ann]["uri2tag"][u][tg_i];
+                //console.log(["-->",tg,":",tax2groupColor[tg]]);
+                U[tax2groupColor[tg]] = 1;
+            }
+            
+            //console.log(U);
+            if (Object.keys(U).length!=4){
+                return "Mention <i>"+A[_id_ann]["label"]+"</i> does not cover the 4 categories."
+            }
+        }
+        
+        return false;
+    }
+    
+    valid_CheckCategories = function(_idv){
+        var count_errors = 0;
+        for (a_i in A){
+            var ann_ = A[a_i];
+            var msg = valid_categories(a_i);
+            
+            if (msg != false){
+                count_errors = count_errors +1;
+                V[_idv]["errors"].push({
+                    "status":"uncorrected",
+                    "position": count_errors,
+                    "idA" : a_i,
+                    "uridoc": ann_["uridoc"],
+                    "label":ann_["label"],
+                    "id_sentence": ann_["id_sentence"],
+                    "error_detail": msg,
+                });
+            }
+        } 
+        
+        //updating main table
+        V[_idv]["number_errors"] = count_errors;
+        V[_idv]["time"]= new Date().toLocaleTimeString();
+        V[_idv]["date"]= new Date().toLocaleDateString();
+        updateMainTableValidation();
+        
+        //displaying the content
+        valid_idvToShow = _idv;
+        valid_showContent();
+    }
+    
+    
+    
     /////------- Validation tree
     
     getTagsOrderedAsText = function(L_tags){
         Lr = [];
         
         for (var i_ = 1; i_<=5; i_++){
-            console.log(["i_:",i_]);
+            //console.log(["i_:",i_]);
             for (j_ in L_tags){
                 tj = L_tags[j_];
-                console.log(["tj:",tj,"-->",tax2groupColor[tj]]);
+                //console.log(["tj:",tj,"-->",tax2groupColor[tj]]);
                 if (tax2groupColor[tj] == i_){
                     Lr.push(tj);
                     break;
