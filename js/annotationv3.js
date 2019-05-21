@@ -4726,6 +4726,14 @@ $(document).ready(function() {
     //--------------------
     //--- Summary button
     
+    numberOfLinks = function(){
+        var cc = 0;
+        for (var i in A){
+            cc = cc + A[i]["uri"].length;        
+        }
+        return cc;
+    }
+    
     $("#btn_summary").click(function(){
         $("#sry_table").empty();
         
@@ -4733,8 +4741,8 @@ $(document).ready(function() {
             '<tr>'+
                 '<th scope="col">#</th>'+
                 '<th scope="col">Attribute</th>'+
-                '<th scope="col">Total</th>'+
-                '<th scope="col">Avg. by doc</th>'+
+                '<th scope="col">mention</th>'+
+                '<th scope="col">link</th>'+
             '</tr>'+
         '</thead>'+
         '<tbody>'+
@@ -4748,36 +4756,53 @@ $(document).ready(function() {
                 '<th scope="row">2</th>'+
                 '<td>Sentencias</td>'+
                 '<td id="sry_sent">0</td>'+
-                '<td id="sry_sent_avg">0</td>'+
+                '<td>-</td>'+
             '</tr>'+
             '<tr>'+
                 '<th scope="row">3</th>'+
                 '<td>Annotaciones</td>'+
                 '<td id="sry_ann">0</td>'+
-                '<td id="sry_ann_avg">0</td>'+
+                '<td id="sry_ann_link">0</td>'+
             '</tr>'+
         '</tbody>';
             
         
         $("#sry_table").html(html_table);
         // calculando cantidad de categorias
-        var H = {};
+        var H = {"mention":{}, "link":{}};
         for (i in A){
             var ann = A[i];
             var tags = ann["tag"];
-            for (j in tags){
-                var tt = tags[j];                
-                if (tt in H){
-                    H[tt] =  H[tt] + 1;
+            var already = [];
+            for (u_i in ann["uri"]){
+                var u_ = ann["uri"][u_i];
+                if (u_ in ann["uri2tag"]){
+                    for (t_i in ann["uri2tag"][u_]){
+                        var tt = ann["uri2tag"][u_][t_i]; 
+                        if (tt in H["link"]){
+                            H["link"][tt] =  H["link"][tt] + 1;
+                        }
+                        else{
+                            H["link"][tt] = 1;
+                        }
+                        
+                        if (already.indexOf(tt)==-1){
+                            if (tt in H["mention"]){
+                                H["mention"][tt] =  H["mention"][tt] + 1;
+                            }
+                            else{
+                                H["mention"][tt] = 1;
+                            }
+                            already.push(tt);
+                        }
+                    }
                 }
-                else{
-                    H[tt] = 1;
-                }
-            }         
+            }
         }
         
-        
-        var T = {};
+        /*
+        //--
+        var T_mention = {};  // only count the annotation once
         for (l in link2type){
             var tt = link2type[l];           
             if (tt in T){
@@ -4787,25 +4812,73 @@ $(document).ready(function() {
                 T[tt] = 1;
             }
                     
+        }*/
+        
+        //--
+        T = {"mention":{}, "link":{}};
+        for (i in A){
+            var ann = A[i];
+            var already = [];
+            for (u_i in ann["uri"]){
+                var u_ = ann["uri"][u_i];
+                
+                var tt = false;
+                if (u_ in link2type){
+                    tt = link2type[u_];
+                }
+                else if (u_.indexOf("mnt:entityType")!=-1){
+                    if (u_.indexOf("mnt:Person")!=-1){
+                        tt = "mnt:Person";
+                    }
+                    else if (u_.indexOf("mnt:Miscellany")!=-1){
+                        tt = "mnt:Miscellany";
+                    }
+                    else if (u_.indexOf("mnt:Place")!=-1){
+                        tt = "mnt:Place";
+                    }
+                    else if (u_.indexOf("mnt:mnt:Organisation")!=-1){
+                        tt = "mnt:Organisation";
+                    }
+                }
+                
+                if (tt!=false){
+                    if (tt in T["link"]){
+                        T["link"][tt] =  T["link"][tt] + 1;
+                    }
+                    else{
+                        T["link"][tt] = 1;
+                    }
+                    
+                    if (already.indexOf(tt)==-1){
+                        if (tt in T["mention"]){
+                            T["mention"][tt] =  T["mention"][tt] + 1;
+                        }
+                        else{
+                            T["mention"][tt] = 1;
+                        }
+                        already.push(tt);
+                    }
+                }
+                
+                
+            }
         }
         
+       
         $("#sry_doc").html(D.length);
         $("#sry_sent").html(Sentences.length);
-        $("#sry_sent_avg").html(Sentences.length/D.length);
         $("#sry_ann").html(A.length);
-        $("#sry_ann_avg").html(A.length/D.length);
+        $("#sry_ann_link").html(numberOfLinks());
         
         
         var pos = 4;
-        for (i in H){
-            var h = H[i];
-            $("#sry_table").append('<tr><th scope="row" class="text-primary">'+pos.toString()+'</th><td class="text-primary">'+i+'</td><td class="text-primary">'+h+'</td><td class="text-primary" >-</td></tr>');
+        for (i in H["link"]){
+            $("#sry_table").append('<tr><th scope="row" class="text-primary">'+pos.toString()+'</th><td class="text-primary">'+i+'</td><td class="text-primary">'+H["mention"][i]+'</td><td class="text-primary" >'+H["link"][i]+'</td></tr>');
             pos = pos + 1;
         }
         
-        for (i in T){
-            var h = T[i];
-            $("#sry_table").append('<tr><th scope="row" class="text-success">'+pos.toString()+'</th><td class="text-success">'+i+'</td><td class="text-success">'+h+'</td><td class="text-success">-</td></tr>');
+        for (i in T["link"]){
+            $("#sry_table").append('<tr><th scope="row" class="text-success">'+pos.toString()+'</th><td class="text-success">'+i+'</td><td class="text-success">'+T["mention"][i]+'</td><td class="text-success">'+T["link"][i]+'</td></tr>');
             pos = pos + 1;
         }
         
@@ -5577,6 +5650,16 @@ $(document).ready(function() {
         "type":"static"
     };
     
+    V[8] = {
+        "name":"Annotations without types",
+        "date":"-",
+        "time":"-",
+        "description":"Here will be displayed those annotations with not type associated.",
+        "number_errors":"-",
+        "errors":[],
+        "type":"static"
+    };
+    
     
     
     
@@ -5738,7 +5821,11 @@ $(document).ready(function() {
                 valid_CheckCategories(idv);
                 $.unblockUI();
             }
-            
+            else if (v["name"] == "Annotations without types"){
+                $.blockUI({ message: null });
+                valid_SearchNoTypedAnnotation(idv);
+                $.unblockUI();
+            }
             
             
         }
@@ -6349,6 +6436,54 @@ $(document).ready(function() {
         valid_idvToShow = _idv;
         valid_showContent();
     }
+    
+    
+    
+    
+    ///// ------------ valid_SearchNoTypedAnnotation
+    
+    valid_typeInfo = function(ann_i){
+        for (u_i in A[ann_i]["uri"]){
+            var u = A[ann_i]["uri"][u_i];
+            if (!(u in link2type) && u.indexOf("mnt:entityType")==-1 && u.indexOf("NotInLexico")==-1){
+                return "URI ("+u+") of mention <i>"+A[ann_i]["label"]+"</i> does not have type information associated."
+            }
+        }
+        return false;
+    }
+    
+    valid_SearchNoTypedAnnotation = function(_idv){
+        var count_errors = 0;
+        for (a_i in A){
+            var ann_ = A[a_i];
+
+            var msg = valid_typeInfo(a_i);
+            
+            if (msg != false){
+                count_errors = count_errors +1;
+                V[_idv]["errors"].push({
+                    "status":"uncorrected",
+                    "position": count_errors,
+                    "idA" : a_i,
+                    "uridoc": ann_["uridoc"],
+                    "label":ann_["label"],
+                    "id_sentence": ann_["id_sentence"],
+                    "error_detail": msg,
+                });
+            }
+        } 
+        
+        //updating main table
+        V[_idv]["number_errors"] = count_errors;
+        V[_idv]["time"]= new Date().toLocaleTimeString();
+        V[_idv]["date"]= new Date().toLocaleDateString();
+        updateMainTableValidation();
+        
+        //displaying the content
+        valid_idvToShow = _idv;
+        valid_showContent();
+    }
+    
     
     
     
